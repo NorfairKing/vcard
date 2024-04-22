@@ -15,10 +15,12 @@ module VCard
     -- ** Rendering
     renderVCardByteString,
     renderVCard,
+    renderCard,
 
     -- ** Parsing
     parseVCardByteString,
     parseVCard,
+    parseCard,
 
     -- *** Errors
     VCardParseError (..),
@@ -98,6 +100,13 @@ renderVCard =
     . DList.toList
     . vcardB
 
+renderCard :: Card -> Text
+renderCard =
+  renderUnfoldedLines
+    . map renderContentLineToUnfoldedLine
+    . DList.toList
+    . cardB
+
 vcardB :: VCard -> DList ContentLine
 vcardB = foldMap cardB
 
@@ -133,6 +142,22 @@ parseVCard contents = do
         _ -> do
           emitWarning $ ComponentWarning $ UnknownComponent componentName
           pure []
+
+parseCard ::
+  Text ->
+  ConformVCard Card
+parseCard contents = do
+  unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
+  contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
+  (componentName, component) <- parseGeneralComponent contentLines
+  case componentName of
+    "VCARD" ->
+      conformMapAll
+        CardParseError
+        CardParseFixableError
+        absurd
+        $ cardP component
+    _ -> unfixableError $ ComponentNotCard componentName
 
 type ComponentName = Text -- Only "VCARD" at the moment
 
@@ -292,6 +317,7 @@ data VCardParseError
   | UnfoldingError !UnfoldingError
   | ContentLineParseError !String
   | ComponentParseError !ComponentParseError
+  | ComponentNotCard !Text
   | CardParseError !CardParseError
   deriving (Show, Eq)
 
@@ -301,6 +327,7 @@ instance Exception VCardParseError where
     UnfoldingError ue -> displayException ue
     ContentLineParseError s -> s
     ComponentParseError cpe -> displayException cpe
+    ComponentNotCard n -> unwords ["Component was not a VCARD:", show n]
     CardParseError cpe -> displayException cpe
 
 data VCardParseFixableError

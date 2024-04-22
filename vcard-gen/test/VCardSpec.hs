@@ -57,13 +57,22 @@ spec = do
       errorFile <- replaceExtension ".error" cardFile
       pure $ pureGoldenStringFile (fromRelFile errorFile) err
 
+  describe "renderCard" $
+    it "roundtrips with parseCard" $
+      forAllValid $ \vcard ->
+        let rendered = renderCard vcard
+            ctx = unlines ["Rendered VCARD:", T.unpack rendered]
+         in context ctx $ do
+              vcard' <- shouldConformStrict $ parseCard rendered
+              vcard' `shouldBe` vcard
+
   describe "renderVCard" $
     it "roundtrips with parseVCard" $
       forAllValid $ \vcard ->
         let rendered = renderVCard vcard
             ctx = unlines ["Rendered VCARD stream:", T.unpack rendered]
          in context ctx $ do
-              vcard' <- shouldConform $ parseVCard rendered
+              vcard' <- shouldConformStrict $ parseVCard rendered
               vcard' `shouldBe` vcard
 
   describe "renderVCardByteString" $
@@ -71,5 +80,5 @@ spec = do
       forAllValid $ \vcard -> do
         let rendered = renderVCardByteString vcard
         context (show rendered) $ do
-          vcard' <- shouldConform $ parseVCardByteString rendered
+          vcard' <- shouldConformStrict $ parseVCardByteString rendered
           vcard' `shouldBe` vcard
