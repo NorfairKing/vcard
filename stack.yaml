@@ -1,0 +1,77 @@
+resolver: lts-21.22
+packages:
+- vcard
+- vcard-gen
+
+# These are duplicated in nix/overlay.nix
+ghc-options:
+  "$locals": -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Widentities -Wredundant-constraints -Wcpp-undef
+
+extra-deps:
+- github: NorfairKing/conformance
+  commit: 1bc2b33152eb2aa402342b64a5275508905585e8
+  subdirs:
+  - conformance
+  - conformance-gen
+
+- github: NorfairKing/autodocodec
+  commit: 958a1c51fbf2f166974a60e2d0a5d266483baff5
+  subdirs:
+  - autodocodec
+  - autodocodec-schema
+  - autodocodec-yaml
+- github: NorfairKing/safe-coloured-text
+  commit: 4161e707b1b0a8090a7149b8195f15943fa29fa9
+  subdirs:
+  - safe-coloured-text
+  - safe-coloured-text-layout
+  - safe-coloured-text-terminfo
+- github: NorfairKing/sydtest
+  commit: d22ec20ca32854f880295cb373f84e874be916bb
+  subdirs:
+  - sydtest
+  - sydtest-discover
+- github: NorfairKing/validity
+  commit: 57c4897ccfeb3de60489e0328113798f059ef140
+  subdirs:
+  - genvalidity
+  - genvalidity-aeson
+  - genvalidity-bytestring
+  - genvalidity-case-insensitive
+  - genvalidity-containers
+  - genvalidity-criterion
+  - genvalidity-network-uri
+  - genvalidity-path
+  - genvalidity-persistent
+  - genvalidity-property
+  - genvalidity-scientific
+  - genvalidity-sydtest
+  - genvalidity-sydtest-aeson
+  - genvalidity-sydtest-hashable
+  - genvalidity-sydtest-lens
+  - genvalidity-sydtest-persistent
+  - genvalidity-text
+  - genvalidity-time
+  - genvalidity-unordered-containers
+  - genvalidity-uuid
+  - genvalidity-vector
+  - validity
+  - validity-aeson
+  - validity-bytestring
+  - validity-case-insensitive
+  - validity-containers
+  - validity-network-uri
+  - validity-path
+  - validity-persistent
+  - validity-primitive
+  - validity-scientific
+  - validity-text
+  - validity-time
+  - validity-unordered-containers
+  - validity-uuid
+  - validity-vector
+
+system-ghc: true
+nix:
+  enable: false
+with-hpack: hpack

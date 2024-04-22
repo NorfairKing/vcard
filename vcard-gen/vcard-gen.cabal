@@ -1,0 +1,95 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           vcard-gen
+version:        0.0.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      VCard.Gen
+  other-modules:
+      Paths_vcard_gen
+  hs-source-dirs:
+      src
+  build-depends:
+      QuickCheck
+    , base >=4.7 && <5
+    , bytestring
+    , case-insensitive
+    , conformance
+    , conformance-gen
+    , containers
+    , dlist
+    , genvalidity
+    , genvalidity-bytestring
+    , genvalidity-case-insensitive
+    , genvalidity-containers
+    , genvalidity-network-uri
+    , genvalidity-sydtest
+    , genvalidity-text
+    , genvalidity-time
+    , sydtest
+    , text
+    , time
+    , vcard
+  default-language: Haskell2010
+
+test-suite vcard-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      VCardSpec
+      Paths_vcard_gen
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-tool-depends:
+      sydtest-discover:sydtest-discover
+  build-depends:
+      QuickCheck
+    , base >=4.7 && <5
+    , bytestring
+    , conformance
+    , conformance-gen
+    , containers
+    , dlist
+    , genvalidity
+    , genvalidity-sydtest
+    , genvalidity-text
+    , megaparsec
+    , network-uri
+    , path
+    , path-io
+    , pretty-show
+    , sydtest
+    , text
+    , time
+    , validity-network-uri
+    , vcard
+    , vcard-gen
+  default-language: Haskell2010
+
+benchmark vcard-bench
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_vcard_gen
+  hs-source-dirs:
+      bench/
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-depends:
+      QuickCheck
+    , base >=4.7 && <5
+    , criterion
+    , deepseq
+    , genvalidity
+    , genvalidity-criterion
+    , genvalidity-vector
+    , vcard
+    , vcard-gen
+    , vector
+  default-language: Haskell2010

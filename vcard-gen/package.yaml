@@ -1,0 +1,79 @@
+name: vcard-gen
+version: 0.0.0.0
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - QuickCheck
+  - bytestring
+  - case-insensitive
+  - conformance
+  - conformance-gen
+  - containers
+  - dlist
+  - genvalidity
+  - genvalidity-bytestring
+  - genvalidity-case-insensitive
+  - genvalidity-containers
+  - genvalidity-network-uri
+  - genvalidity-sydtest
+  - genvalidity-text
+  - genvalidity-time
+  - vcard
+  - sydtest
+  - text
+  - time
+
+benchmarks:
+  vcard-bench:
+    main: Main.hs
+    source-dirs: bench/
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    dependencies:
+    - QuickCheck
+    - criterion
+    - deepseq
+    - genvalidity
+    - genvalidity-criterion
+    - genvalidity-vector
+    - vcard
+    - vcard-gen
+    - vector
+
+tests:
+  vcard-test:
+    main: Spec.hs
+    source-dirs: test
+    build-tools: sydtest-discover
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - QuickCheck
+    - bytestring
+    - conformance
+    - conformance-gen
+    - containers
+    - dlist
+    - genvalidity
+    - genvalidity-sydtest
+    - genvalidity-text
+    - vcard
+    - vcard-gen
+    - megaparsec
+    - network-uri
+    - path
+    - path-io
+    - pretty-show
+    - sydtest
+    - text
+    - time
+    - validity-network-uri
