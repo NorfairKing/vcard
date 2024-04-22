@@ -25,10 +25,11 @@ library:
   - genvalidity-sydtest
   - genvalidity-text
   - genvalidity-time
-  - vcard
+  - path
   - sydtest
   - text
   - time
+  - vcard
 
 benchmarks:
   vcard-bench:

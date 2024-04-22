@@ -9,10 +9,15 @@ version:        0.0.0.0
 build-type:     Simple
 extra-source-files:
     test_resources/unfolded-lines.txt
+    test_resources/vcard/fixable/no-crlf.vcf
+    test_resources/vcard/valid/double.vcf
+    test_resources/vcard/valid/empty.vcf
+    test_resources/vcard/valid/example.vcf
 
 library
   exposed-modules:
       VCard.Gen
+      VCard.TestUtils
       VCard.UnfoldedLine.Gen
   other-modules:
       Paths_vcard_gen
@@ -35,6 +40,7 @@ library
     , genvalidity-sydtest
     , genvalidity-text
     , genvalidity-time
+    , path
     , sydtest
     , text
     , time

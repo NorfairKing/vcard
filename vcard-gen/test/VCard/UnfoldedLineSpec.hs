@@ -4,12 +4,12 @@ module VCard.UnfoldedLineSpec where
 
 import Conformance
 import Conformance.TestUtils
-import Control.Monad
 import qualified Data.ByteString as SB
 import qualified Data.Text.Encoding as TE
 import Path
 import Test.Syd
 import Test.Syd.Validity
+import VCard.TestUtils
 import VCard.UnfoldedLine
 import VCard.UnfoldedLine.Gen ()
 
@@ -70,18 +70,14 @@ spec = do
   pending "that multi-octet UTF-8 sequences are preserved correctly"
 
   -- Tests based on example calendars
-  scenarioDirRecur "test_resources/vcard/valid" $ \calFile -> do
-    relCalFile <- runIO $ parseRelFile calFile
-    when (fileExtension relCalFile == Just ".vcard") $
-      it "can parse and unfold every line" $ do
-        contents <- TE.decodeUtf8 <$> SB.readFile calFile
-        unfoldedLines <- shouldConformStrict (parseUnfoldedLines contents)
-        shouldBeValid unfoldedLines
+  vcardScenarioDirRecur "test_resources/vcard/valid" $ \cardFile -> do
+    it "can parse and unfold every line" $ do
+      contents <- TE.decodeUtf8 <$> SB.readFile (fromRelFile cardFile)
+      unfoldedLines <- shouldConformStrict (parseUnfoldedLines contents)
+      shouldBeValid unfoldedLines
 
-  scenarioDirRecur "test_resources/vcard/fixable" $ \calFile -> do
-    relCalFile <- runIO $ parseRelFile calFile
-    when (fileExtension relCalFile == Just ".vcard") $
-      it "can parse and unfold every line" $ do
-        contents <- TE.decodeUtf8 <$> SB.readFile calFile
-        unfoldedLines <- shouldConformLenient (parseUnfoldedLines contents)
-        shouldBeValid unfoldedLines
+  vcardScenarioDirRecur "test_resources/vcard/fixable" $ \cardFile -> do
+    it "can parse and unfold every line" $ do
+      contents <- TE.decodeUtf8 <$> SB.readFile (fromRelFile cardFile)
+      unfoldedLines <- shouldConformLenient (parseUnfoldedLines contents)
+      shouldBeValid unfoldedLines

@@ -16,7 +16,7 @@ mkDerivation {
     containers dlist genvalidity genvalidity-bytestring
     genvalidity-case-insensitive genvalidity-containers
     genvalidity-network-uri genvalidity-sydtest genvalidity-text
-    genvalidity-time QuickCheck sydtest text time vcard
+    genvalidity-time path QuickCheck sydtest text time vcard
   ];
   testHaskellDepends = [
     base bytestring conformance conformance-gen containers dlist
