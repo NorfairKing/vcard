@@ -6,6 +6,7 @@ module VCard
   ( VCard (..),
     vcardContentType,
     module VCard,
+    module VCard.UnfoldedLine,
   )
 where
 
@@ -13,6 +14,7 @@ import Control.DeepSeq
 import Data.ByteString (ByteString)
 import Data.Validity
 import GHC.Generics (Generic)
+import VCard.UnfoldedLine
 
 data VCard = VCard
   deriving (Show, Generic)

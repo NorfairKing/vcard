@@ -18,10 +18,10 @@ Not ready yet.
 
 ### RFC 6350
 
-- [ ] 1.  Introduction
-- [ ] 2.  Conventions 
-- [ ] 3.  vCard Format Specification
-  - [ ] 3.1.  Charset 
+- [X] 1.  Introduction
+- [X] 2.  Conventions 
+- [X] 3.  vCard Format Specification
+  - [X] 3.1.  Charset 
   - [ ] 3.2.  Line Delimiting and Folding 
   - [ ] 3.3.  ABNF Format Definition
   - [ ] 3.4.  Property Value Escaping 
