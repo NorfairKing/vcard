@@ -10,3 +10,7 @@ import VCard.Gen ()
 spec :: Spec
 spec = do
   genValidSpec @VCard
+
+  describe "vcardContentType" $
+    it "is valid" $
+      shouldBeValid vcardContentType
