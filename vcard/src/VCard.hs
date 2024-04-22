@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wno-duplicate-exports #-}
 
 module VCard
@@ -37,6 +39,7 @@ import Conformance
 import Control.Arrow (left)
 import Control.DeepSeq
 import Control.Exception
+import Control.Monad
 import Data.ByteString (ByteString)
 import Data.DList (DList)
 import qualified Data.DList as DList
@@ -44,6 +47,7 @@ import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Proxy
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
@@ -110,15 +114,25 @@ parseVCardByteString contents = do
 
 parseVCard ::
   Text ->
-  Conform
-    VCardParseError
-    VCardParseFixableError
-    VCardParseWarning
-    VCard
+  ConformVCard VCard
 parseVCard contents = do
   unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
   contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-  conformMapAll CardParseError CardParseFixableError CardParseWarning $ undefined contentLines
+  componentMap <- parseGeneralComponents contentLines
+  if M.null componentMap
+    then pure ([] :: VCard)
+    else fmap concat $ forM (M.toList componentMap) $ \(componentName, components) ->
+      case componentName of
+        "VCARD" ->
+          conformMapAll
+            CardParseError
+            CardParseFixableError
+            CardParseWarning
+            $ mapM cardP
+            $ NE.toList components
+        _ -> do
+          emitWarning $ ComponentWarning $ UnknownComponent componentName
+          pure []
 
 type ComponentName = Text -- Only "VCARD" at the moment
 
@@ -142,6 +156,17 @@ instance Exception ComponentParseError where
       unwords
         [ unwords ["Missing END property for component with name", show expected],
           unwords ["found an END property for component with name", show actual, "instead."]
+        ]
+
+data ComponentWarning = UnknownComponent !Text
+  deriving (Show, Eq)
+
+instance Exception ComponentWarning where
+  displayException = \case
+    UnknownComponent t ->
+      unwords
+        [ "Unknown component:",
+          show t
         ]
 
 renderGeneralComponents :: Map ComponentName (NonEmpty Component) -> DList ContentLine
@@ -245,6 +270,23 @@ parseGeneralComponentHelper = \case
               subComponents
               rest
 
+requiredPropertyP :: forall a. (IsProperty a) => Map ContentLineName (NonEmpty ContentLineValue) -> ConformCard a
+requiredPropertyP m = case M.lookup name m of
+  Nothing -> unfixableError $ CardParseErrorMissingRequiredProperty name
+  Just (value :| restValues) -> do
+    case NE.nonEmpty restValues of
+      Nothing -> pure ()
+      Just (secondValue :| lastValues) ->
+        emitFixableError $ MoreThanOneRequiredPropertyValue name value secondValue lastValues
+    conformMapAll PropertyParseError PropertyParseFixableError absurd $ propertyContentLineP (ContentLine Nothing name value)
+  where
+    name = propertyName (Proxy :: Proxy a)
+
+requiredPropertyB :: (IsProperty property) => property -> Map ContentLineName (NonEmpty ContentLineValue)
+requiredPropertyB property =
+  let cl = propertyContentLineB property
+   in M.singleton (contentLineName cl) (contentLineValue cl :| [])
+
 data VCardParseError
   = TextDecodingError !TE.UnicodeException
   | UnfoldingError !UnfoldingError
@@ -271,11 +313,14 @@ instance Exception VCardParseFixableError where
     UnfoldingFixableError ue -> displayException ue
     CardParseFixableError cpfe -> displayException cpfe
 
-data VCardParseWarning = CardParseWarning !CardParseWarning
+data VCardParseWarning
+  = ComponentWarning !ComponentWarning
+  | CardParseWarning !CardParseWarning
   deriving (Show, Eq)
 
 instance Exception VCardParseWarning where
   displayException = \case
+    ComponentWarning cw -> displayException cw
     CardParseWarning cpw -> displayException cpw
 
 type ConformVCard a = Conform VCardParseError VCardParseFixableError VCardParseWarning a
@@ -289,14 +334,23 @@ instance Validity Card
 
 instance NFData Card
 
-data CardParseError = PropertyParseError !PropertyParseError
+data CardParseError
+  = PropertyParseError !PropertyParseError
+  | CardParseErrorMissingRequiredProperty !ContentLineName
   deriving (Show, Eq, Generic)
 
 instance Exception CardParseError where
   displayException = \case
     PropertyParseError ppe -> displayException ppe
+    CardParseErrorMissingRequiredProperty name ->
+      unwords
+        [ "Missing required property:",
+          show (renderContentLineName name)
+        ]
 
-data CardParseFixableError = PropertyParseFixableError !PropertyParseFixableError
+data CardParseFixableError
+  = PropertyParseFixableError !PropertyParseFixableError
+  | MoreThanOneRequiredPropertyValue !ContentLineName !ContentLineValue !ContentLineValue ![ContentLineValue]
   deriving (Show, Eq, Generic)
 
 instance Exception CardParseFixableError where
@@ -308,7 +362,14 @@ type CardParseWarning = Void
 type ConformCard a = Conform CardParseError CardParseFixableError CardParseWarning a
 
 cardB :: Card -> DList ContentLine
-cardB = undefined
+cardB Card {..} =
+  mconcat
+    [ DList.singleton $ propertyContentLineB $ Begin "VCARD",
+      DList.singleton $ propertyContentLineB cardFormattedName,
+      DList.singleton $ propertyContentLineB $ End "VCARD"
+    ]
 
 cardP :: Map ContentLineName (NonEmpty ContentLineValue) -> Conform CardParseError CardParseFixableError CardParseWarning Card
-cardP = undefined
+cardP componentProperties = do
+  cardFormattedName <- requiredPropertyP componentProperties
+  pure Card {..}

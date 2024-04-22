@@ -189,3 +189,8 @@ data FormattedName = FormattedName
 instance Validity FormattedName
 
 instance NFData FormattedName
+
+instance IsProperty FormattedName where
+  propertyName Proxy = "FN"
+  propertyP = wrapPropertyTypeP FormattedName
+  propertyB = propertyTypeB . formattedNameValue
