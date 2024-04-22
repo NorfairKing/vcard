@@ -5,6 +5,7 @@
 module VCard
   ( VCard (..),
     vcardContentType,
+    isVCardExtension,
     module VCard,
     module VCard.UnfoldedLine,
   )
@@ -42,3 +43,11 @@ instance NFData VCard
 -- > vcardContentType = "text/calendar; charset=utf-8"
 vcardContentType :: ByteString
 vcardContentType = "text/vcard; charset=utf-8"
+
+-- [Section 10.1](https://datatracker.ietf.org/doc/html/rfc6350#section-10.1)
+-- > isVCardExtension ".vcf"
+-- True
+-- > isVCardExtension ".vcard"
+-- True
+isVCardExtension :: String -> Bool
+isVCardExtension = (`elem` [".vcf", ".vcard"])

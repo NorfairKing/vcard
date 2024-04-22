@@ -27,7 +27,7 @@ spec = do
 
     -- Test based on this part of the spec:
     --
-    -- [Section 3.1](https://datatracker.ietf.org/doc/html/rfc5545#section-3.1)
+    -- [Section 3.2](https://datatracker.ietf.org/doc/html/rfc6350#section-3.2)
     -- @
     -- For example, the line:
     --

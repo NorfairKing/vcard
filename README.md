@@ -114,7 +114,7 @@ Not ready yet.
 - [ ] 8.  Example: Author's vCard 
 - [ ] 9.  Security Considerations 
 - [ ] 10. IANA Considerations 
-  - [ ] 10.1. Media Type Registration 
+  - X ] 10.1. Media Type Registration 
   - [ ] 10.2. Registering New vCard Elements
     - [ ] 10.2.1. Registration Procedure
     - [ ] 10.2.2. Vendor Namespace
@@ -127,10 +127,10 @@ Not ready yet.
     - [ ] 10.3.2. Parameters Registry 
     - [ ] 10.3.3. Value Data Types Registry 
     - [ ] 10.3.4. Values Registries 
-- [ ] 11. Acknowledgments 
-- [ ] 12. References
-  - [ ] 12.1. Normative References
-  - [ ] 12.2. Informative References
+- [X] 11. Acknowledgments 
+- [X] 12. References
+  - [X] 12.1. Normative References
+  - [X] 12.2. Informative References
 - [ ] Appendix A.  Differences from RFCs 2425 and 2426
   - [ ] A.1.  New Structure 
   - [ ] A.2.  Removed Features
