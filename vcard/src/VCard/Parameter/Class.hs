@@ -23,13 +23,10 @@ where
 import Conformance
 import Control.Exception
 import Control.Monad
-import Data.CaseInsensitive (CI)
 import Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.List.NonEmpty as NE
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Data.Proxy
-import Data.Text (Text)
 import Data.Validity.Time ()
 import Data.Void
 import Text.Megaparsec

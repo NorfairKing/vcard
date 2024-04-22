@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
@@ -23,27 +22,16 @@ where
 
 import Conformance
 import Control.Exception
-import Data.CaseInsensitive (CI)
-import Data.Int
 import Data.Proxy
-import Data.Set (Set)
-import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time as Time
-import Data.Validity
-import Data.Validity.Text ()
-import Data.Validity.Time ()
 import Data.Void
-import Text.Megaparsec
-import Text.Read
 import VCard.ContentLine
 import VCard.Parameter.Class
 import VCard.Parameter.ValueDataType
 
 data PropertyTypeParseError
-  = ParameterParseError !ParameterParseError
-  | UnexpectedValueType
+  = UnexpectedValueType
       -- Actual
       !ValueDataType
       -- Expected
@@ -52,7 +40,6 @@ data PropertyTypeParseError
 
 instance Exception PropertyTypeParseError where
   displayException = \case
-    ParameterParseError ppe -> displayException ppe
     UnexpectedValueType actual expected ->
       unlines
         [ "Uxpected value type.",
@@ -260,7 +247,7 @@ typedPropertyTypeP ::
   ConformPropertyType propertyType
 typedPropertyTypeP clv = do
   mValueDataType <-
-    conformMapAll ParameterParseError ParameterParseFixableError id $
+    conformMapAll absurd ParameterParseFixableError absurd $
       optionalParam (contentLineValueParams clv)
   let typ = propertyTypeValueType (Proxy :: Proxy propertyType)
   case mValueDataType of

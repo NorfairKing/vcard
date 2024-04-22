@@ -127,7 +127,7 @@ parseVCard contents = do
           conformMapAll
             CardParseError
             CardParseFixableError
-            CardParseWarning
+            absurd
             $ mapM cardP
             $ NE.toList components
         _ -> do
@@ -315,13 +315,11 @@ instance Exception VCardParseFixableError where
 
 data VCardParseWarning
   = ComponentWarning !ComponentWarning
-  | CardParseWarning !CardParseWarning
   deriving (Show, Eq)
 
 instance Exception VCardParseWarning where
   displayException = \case
     ComponentWarning cw -> displayException cw
-    CardParseWarning cpw -> displayException cpw
 
 type ConformVCard a = Conform VCardParseError VCardParseFixableError VCardParseWarning a
 
@@ -356,6 +354,8 @@ data CardParseFixableError
 instance Exception CardParseFixableError where
   displayException = \case
     PropertyParseFixableError ppfe -> displayException ppfe
+    MoreThanOneRequiredPropertyValue name v1 v2 vRest ->
+      unlines $ unwords ["Multiple values of required property, guessing the first:", show name] : map show (v1 : v2 : vRest)
 
 type CardParseWarning = Void
 
