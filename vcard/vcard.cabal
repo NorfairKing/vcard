@@ -12,7 +12,12 @@ library
   exposed-modules:
       VCard
       VCard.ContentLine
+      VCard.Parameter
+      VCard.Parameter.Class
+      VCard.Parameter.ValueDataType
       VCard.Property
+      VCard.PropertyType
+      VCard.PropertyType.Class
       VCard.UnfoldedLine
   other-modules:
       Paths_vcard
