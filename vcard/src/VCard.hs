@@ -3,26 +3,51 @@
 {-# OPTIONS_GHC -Wno-duplicate-exports #-}
 
 module VCard
-  ( VCard (..),
+  ( -- * VCard
+    VCard,
+    Card (..),
     vcardContentType,
     isVCardExtension,
+
+    -- ** Rendering
+    renderVCardByteString,
+    renderVCard,
+
+    -- ** Parsing
+    parseVCardByteString,
+    parseVCard,
+
+    -- *** Errors
+    VCardParseError (..),
+    VCardParseFixableError (..),
+    VCardParseWarning (..),
+
+    -- *** Running a 'Conform'
+    runConformStrict,
+    runConform,
+    runConformLenient,
+    runConformFlexible,
     module VCard,
     module VCard.UnfoldedLine,
   )
 where
 
+import Conformance
 import Control.DeepSeq
 import Data.ByteString (ByteString)
+import Data.DList (DList)
+import qualified Data.DList as DList
+import Data.List.NonEmpty (NonEmpty (..))
+import Data.Map (Map)
+import qualified Data.Map as M
+import Data.Text (Text)
+import qualified Data.Text.Encoding as TE
 import Data.Validity
+import Data.Void
 import GHC.Generics (Generic)
+import VCard.ContentLine
+import VCard.Property
 import VCard.UnfoldedLine
-
-data VCard = VCard
-  deriving (Show, Generic)
-
-instance Validity VCard
-
-instance NFData VCard
 
 -- | MIME Content type
 --
@@ -51,3 +76,63 @@ vcardContentType = "text/vcard; charset=utf-8"
 -- True
 isVCardExtension :: String -> Bool
 isVCardExtension = (`elem` [".vcf", ".vcard"])
+
+type VCard = [Card]
+
+renderVCardByteString :: VCard -> ByteString
+renderVCardByteString = TE.encodeUtf8 . renderVCard
+
+renderVCard :: VCard -> Text
+renderVCard =
+  renderUnfoldedLines
+    . map renderContentLineToUnfoldedLine
+    . DList.toList
+    . vcardB
+
+vcardB :: VCard -> DList ContentLine
+vcardB = foldMap cardB
+
+parseVCardByteString ::
+  ByteString ->
+  Conform
+    VCardParseError
+    VCardParseFixableError
+    VCardParseWarning
+    VCard
+parseVCardByteString = undefined
+
+parseVCard ::
+  Text ->
+  Conform
+    VCardParseError
+    VCardParseFixableError
+    VCardParseWarning
+    VCard
+parseVCard = undefined
+
+type VCardParseError = Void
+
+type VCardParseFixableError = Void
+
+type VCardParseWarning = Void
+
+data Card = Card
+  { cardFormattedName :: !FormattedName
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity Card
+
+instance NFData Card
+
+type CardParseError = Void
+
+type CardParseFixableError = Void
+
+type CardParseWarning = Void
+
+cardB :: Card -> DList ContentLine
+cardB = undefined
+
+cardP :: Map ContentLineName (NonEmpty ContentLineValue) -> Conform CardParseError CardParseFixableError CardParseWarning Card
+cardP = undefined

@@ -7,5 +7,6 @@ where
 
 import Data.GenValidity
 import VCard
+import VCard.Property.Gen ()
 
-instance GenValid VCard
+instance GenValid Card

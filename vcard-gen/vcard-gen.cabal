@@ -18,6 +18,7 @@ library
   exposed-modules:
       VCard.ContentLine.Gen
       VCard.Gen
+      VCard.Property.Gen
       VCard.TestUtils
       VCard.UnfoldedLine.Gen
   other-modules:

@@ -2,10 +2,17 @@
 
 module VCardSpec where
 
+import Conformance
+import Conformance.TestUtils
+import Control.Exception
+import qualified Data.ByteString as SB
+import qualified Data.Text as T
+import Path
 import Test.Syd
 import Test.Syd.Validity
 import VCard
 import VCard.Gen ()
+import VCard.TestUtils
 
 spec :: Spec
 spec = do
@@ -14,3 +21,55 @@ spec = do
   describe "vcardContentType" $
     it "is valid" $
       shouldBeValid vcardContentType
+
+  -- Tests based on example calendars
+  vcardScenarioDirRecur "test_resources/card/valid" $ \cardFile ->
+    it "can parse this calendar" $ do
+      contents <- SB.readFile (fromRelFile cardFile)
+      vcard <- shouldConformStrict $ parseVCardByteString contents
+      shouldBeValid vcard
+      let rendered = renderVCardByteString vcard
+      context (show rendered) $ do
+        vcard' <- shouldConformStrict $ parseVCardByteString rendered
+        vcard' `shouldBe` vcard
+
+  vcardScenarioDirRecur "test_resources/card/fixable" $ \cardFile -> do
+    it "cannot parse this calendar strictly" $ do
+      contents <- SB.readFile (fromRelFile cardFile)
+      case runConformStrict $ parseVCardByteString contents of
+        Left _ -> pure ()
+        Right vcard -> expectationFailure $ unlines ["Should have failed but succeeded in parsing this vcard:", ppShow vcard]
+
+    it "can parse this calendar leniently and turn it into something valid that can be parsed strictly" $ do
+      contents <- SB.readFile (fromRelFile cardFile)
+      vcard <- shouldConformLenient $ parseVCardByteString contents
+      shouldBeValid vcard
+      let rendered = renderVCardByteString vcard
+      vcard' <- shouldConformStrict $ parseVCardByteString rendered
+      vcard' `shouldBe` vcard
+
+  vcardScenarioDirRecur "test_resources/card/error" $ \cardFile -> do
+    it "fails to parse this calendar" $ do
+      contents <- SB.readFile $ fromRelFile cardFile
+      err <- case runConform $ parseVCardByteString contents of
+        Left err -> pure $ displayException err
+        Right vcard -> expectationFailure $ unlines ["Should have failed but succeeded in parsing this vcard:", ppShow vcard]
+      errorFile <- replaceExtension ".error" cardFile
+      pure $ pureGoldenStringFile (fromRelFile errorFile) err
+
+  describe "renderVCard" $
+    it "roundtrips with parseVCard" $
+      forAllValid $ \vcard ->
+        let rendered = renderVCard vcard
+            ctx = unlines ["Rendered VCARD stream:", T.unpack rendered]
+         in context ctx $ do
+              vcard' <- shouldConform $ parseVCard rendered
+              vcard' `shouldBe` vcard
+
+  describe "renderVCardByteString" $
+    it "roundtrips with parseVCardByteString" $
+      forAllValid $ \vcard -> do
+        let rendered = renderVCardByteString vcard
+        context (show rendered) $ do
+          vcard' <- shouldConform $ parseVCardByteString rendered
+          vcard' `shouldBe` vcard
