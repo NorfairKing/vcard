@@ -3,6 +3,7 @@
 module VCard.ContentLine.Gen where
 
 import qualified Data.CaseInsensitive as CI
+import Data.Char (chr)
 import Data.GenValidity
 import Data.GenValidity.CaseInsensitive ()
 import Data.GenValidity.Map ()
@@ -37,10 +38,10 @@ genNonEmptyTextBy :: Gen Char -> Gen Text
 genNonEmptyTextBy gen = genTextBy gen `suchThat` (not . T.null)
 
 genGroupChar :: Gen Char
-genGroupChar = genValid `suchThat` (validationIsValid . validateGroupChar)
+genGroupChar = choose (chr 0, chr 127) `suchThat` (validationIsValid . validateGroupChar)
 
 genNameChar :: Gen Char
-genNameChar = genValid `suchThat` (validationIsValid . validateNameChar)
+genNameChar = choose (chr 0, chr 127) `suchThat` (validationIsValid . validateNameChar)
 
 instance GenValid ParamValue where
   genValid = genValidStructurallyWithoutExtraChecking

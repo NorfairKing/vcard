@@ -302,7 +302,7 @@ validateGroupChar c =
 validateNameChar :: Char -> Validation
 validateNameChar c =
   declare "The character is a name character" $
-    Char.isAlpha c || Char.isDigit c || c == '-'
+    Char.isAscii c && (Char.isAlpha c || Char.isDigit c || c == '-')
 
 validateVendorIdChar :: Char -> Validation
 validateVendorIdChar c =
