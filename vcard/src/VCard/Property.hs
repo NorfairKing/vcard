@@ -20,6 +20,7 @@ module VCard.Property
     Begin (..),
     End (..),
     FormattedName (..),
+    Version (..),
   )
 where
 
@@ -194,3 +195,42 @@ instance IsProperty FormattedName where
   propertyName Proxy = "FN"
   propertyP = wrapPropertyTypeP FormattedName
   propertyB = propertyTypeB . formattedNameValue
+
+-- [Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
+--
+-- @
+-- Purpose:  To specify the version of the vCard specification used to
+--    format this vCard.
+--
+-- Value type:  A single text value.
+--
+-- Cardinality:  1
+--
+-- Special notes:  This property MUST be present in the vCard object,
+--    and it must appear immediately after BEGIN:VCARD.  The value MUST
+--    be "4.0" if the vCard corresponds to this specification.  Note
+--    that earlier versions of vCard allowed this property to be placed
+--    anywhere in the vCard object, or even to be absent.
+--
+-- ABNF:
+--
+--   VERSION-param = "VALUE=text" / any-param
+--   VERSION-value = "4.0"
+--
+-- Example:
+--
+--         VERSION:4.0
+-- @
+newtype Version = Version
+  { unVersion :: Text
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity Version
+
+instance NFData Version
+
+instance IsProperty Version where
+  propertyName Proxy = "VERSION"
+  propertyP = wrapPropertyTypeP Version
+  propertyB = propertyTypeB . unVersion

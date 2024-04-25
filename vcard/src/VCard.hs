@@ -350,8 +350,10 @@ instance Exception VCardParseWarning where
 
 type ConformVCard a = Conform VCardParseError VCardParseFixableError VCardParseWarning a
 
+-- TODO allow parsing any version of card
 data Card = Card
-  { cardFormattedName :: !FormattedName
+  { cardVersion :: !Version,
+    cardFormattedName :: !FormattedName
   }
   deriving (Show, Eq, Generic)
 
@@ -392,11 +394,22 @@ cardB :: Card -> DList ContentLine
 cardB Card {..} =
   mconcat
     [ DList.singleton $ propertyContentLineB $ Begin "VCARD",
+      -- [Section 6.7.9: VERSION](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
+      --
+      -- @
+      -- Special notes:  This property MUST be present in the vCard object,
+      --    and it must appear immediately after BEGIN:VCARD.  The value MUST
+      --    be "4.0" if the vCard corresponds to this specification.  Note
+      --    that earlier versions of vCard allowed this property to be placed
+      --    anywhere in the vCard object, or even to be absent.
+      -- @
+      DList.singleton $ propertyContentLineB cardVersion,
       DList.singleton $ propertyContentLineB cardFormattedName,
       DList.singleton $ propertyContentLineB $ End "VCARD"
     ]
 
 cardP :: Map ContentLineName (NonEmpty ContentLineValue) -> Conform CardParseError CardParseFixableError CardParseWarning Card
 cardP componentProperties = do
+  cardVersion <- requiredPropertyP componentProperties
   cardFormattedName <- requiredPropertyP componentProperties
   pure Card {..}

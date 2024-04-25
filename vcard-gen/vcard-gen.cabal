@@ -9,10 +9,18 @@ version:        0.0.0.0
 build-type:     Simple
 extra-source-files:
     test_resources/unfolded-lines.txt
-    test_resources/vcard/fixable/no-crlf.vcf
-    test_resources/vcard/valid/double.vcf
+    test_resources/vcard/fixable/version-4/no-crlf.vcf
     test_resources/vcard/valid/empty.vcf
-    test_resources/vcard/valid/example.vcf
+    test_resources/vcard/valid/version-4/double.vcf
+    test_resources/vcard/valid/version-4/example.vcf
+    test_resources/vcard/valid/version-4/section-6.1.4.vcf
+    test_resources/vcard/valid/version-4/section-6.6.5.vcf
+    test_resources/vcard/valid/version-4/section-7.1.3.vcf
+    test_resources/vcard/valid/version-4/section-7.2.1.vcf
+    test_resources/vcard/valid/version-4/section-7.2.3.vcf
+    test_resources/vcard/valid/version-4/section-7.2.4.vcf
+    test_resources/vcard/valid/version-4/section-7.2.5.vcf
+    test_resources/vcard/valid/version-4/section-8.vcf
 
 library
   exposed-modules:
