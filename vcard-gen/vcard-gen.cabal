@@ -11,6 +11,10 @@ extra-source-files:
     test_resources/unfolded-lines.txt
     test_resources/vcard/fixable/version-4/no-crlf.vcf
     test_resources/vcard/valid/empty.vcf
+    test_resources/vcard/valid/version-3/rfc2426-section-7.vcf
+    test_resources/vcard/valid/version-3/rfc2739-section-2.3.vcf
+    test_resources/vcard/valid/version-3/rfc2739-section-6.vcf
+    test_resources/vcard/valid/version-3/rfc4470-section-4.vcf
     test_resources/vcard/valid/version-4/double.vcf
     test_resources/vcard/valid/version-4/example.vcf
     test_resources/vcard/valid/version-4/section-6.1.4.vcf

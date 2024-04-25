@@ -1,0 +1,52 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Small;Tony
+FN:Tony Small
+ORG:XpertSite.Com
+ADR;TYPE=WORK,POSTAL,PARCEL:;;4700 42nd Ave. SW, Suite 440;
+ Seattle;WA;98116;USA
+TEL;TYPE=WORK,MSG:+1-206-937-9972
+TEL;TYPE=WORK,FAX:+1-206-936-7329
+EMAIL;TYPE=INTERNET:tony@xpertsite.com
+CALADRURI:MAILTO:tony@xpertsite.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Hennessy;Denis
+FN:Denis Hennessy
+ORG:ISOCOR
+ADR;TYPE=WORK,POSTAL,PARCEL:;;42-47 Lower Mount St;
+ Dublin 2;Ireland
+TEL;TYPE=WORK,MSG:+353-1-676-0366
+TEL;TYPE=WORK,FAX:+353-1-676-0856
+EMAIL;TYPE=INTERNET:denis.hennessy@isocor.com
+CALADRURI:MAILTO:denis.hennessy@isocor.com
+END:VCARD
+ BEGIN:VCARD
+VERSION:3.0
+N:Dawson;Frank
+FN:Frank Dawson
+ORG:Lotus Development Corporation
+ADR;TYPE=WORK,POSTAL,PARCEL:;;6544 Battleford Drive;
+ Raleigh;NC;27613-3502;USA
+TEL;TYPE=WORK,PREF:+1-617-693-8728
+TEL;TYPE=WORK,MSG:+1-919-676-9515
+TEL;TYPE=FAX:+1-617-693-8728
+EMAIL;TYPE=INTERNET,PREF:Frank_Dawson@Lotus.com
+EMAIL;TYPE=INTERNET:fdawson@earthlink.net
+CALADRURI;TYPE=PREF:MAILTO:Frank_Dawson@Lotus.com
+CALADRURI:MAILTO:fdawson@earthlink.net
+URL:http://home.earthlink.net/~fdawson
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:Egen;Pat
+FN:Pat Egen
+ORG:Engan Consulting
+ADR;TYPE=WORK:;;803 Creek Overlook;Chattanooga;TN;37415;USA
+TEL;TYPE=WORK,VOICE:423.875.2652
+TEL;TYPE=WORK,FAX:423.875.2017
+EMAIL:pregen@egenconsulting.com
+URL:http://www.egenconsulting.com
+CALADRURI:MAILTO:pregen@egenconsulting.com
+END:VCARD
