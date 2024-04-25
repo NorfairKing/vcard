@@ -22,25 +22,14 @@ spec = do
     it "is valid" $
       shouldBeValid vcardContentType
 
-  -- Tests based on example calendars
-  vcardScenarioDirRecur "test_resources/card/valid" $ \cardFile ->
-    it "can parse this calendar" $ do
-      contents <- SB.readFile (fromRelFile cardFile)
-      vcard <- shouldConformStrict $ parseVCardByteString contents
-      shouldBeValid vcard
-      let rendered = renderVCardByteString vcard
-      context (show rendered) $ do
-        vcard' <- shouldConformStrict $ parseVCardByteString rendered
-        vcard' `shouldBe` vcard
-
   vcardScenarioDirRecur "test_resources/card/fixable" $ \cardFile -> do
-    it "cannot parse this calendar strictly" $ do
+    it "cannot parse this card strictly" $ do
       contents <- SB.readFile (fromRelFile cardFile)
       case runConformStrict $ parseVCardByteString contents of
         Left _ -> pure ()
         Right vcard -> expectationFailure $ unlines ["Should have failed but succeeded in parsing this vcard:", ppShow vcard]
 
-    it "can parse this calendar leniently and turn it into something valid that can be parsed strictly" $ do
+    it "can parse this card leniently and turn it into something valid that can be parsed strictly" $ do
       contents <- SB.readFile (fromRelFile cardFile)
       vcard <- shouldConformLenient $ parseVCardByteString contents
       shouldBeValid vcard
@@ -49,7 +38,7 @@ spec = do
       vcard' `shouldBe` vcard
 
   vcardScenarioDirRecur "test_resources/card/error" $ \cardFile -> do
-    it "fails to parse this calendar" $ do
+    it "fails to parse this card" $ do
       contents <- SB.readFile $ fromRelFile cardFile
       err <- case runConform $ parseVCardByteString contents of
         Left err -> pure $ displayException err

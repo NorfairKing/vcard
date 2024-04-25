@@ -16,6 +16,22 @@ Not ready yet.
 
 ## Implementation checklist
 
+### RFC 2425
+
+TODO
+
+### RFC 2426
+
+TODO
+
+### RFC 2739
+
+TODO
+
+### RFC 4770
+
+TODO
+
 ### RFC 6350
 
 - [X] 1.  Introduction
