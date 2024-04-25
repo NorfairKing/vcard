@@ -66,6 +66,7 @@ test-suite vcard-test
   main-is: Spec.hs
   other-modules:
       VCard.ContentLineSpec
+      VCard.PropertySpec
       VCard.UnfoldedLineSpec
       VCardSpec
       Paths_vcard_gen
