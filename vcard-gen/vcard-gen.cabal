@@ -28,8 +28,8 @@ extra-source-files:
 
 library
   exposed-modules:
+      VCard.Component.Gen
       VCard.ContentLine.Gen
-      VCard.Gen
       VCard.Property.Gen
       VCard.TestUtils
       VCard.UnfoldedLine.Gen
@@ -65,6 +65,8 @@ test-suite vcard-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      VCard.Component.V4Spec
+      VCard.ComponentSpec
       VCard.ContentLineSpec
       VCard.PropertySpec
       VCard.UnfoldedLineSpec

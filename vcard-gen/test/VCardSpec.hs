@@ -11,7 +11,7 @@ import Path
 import Test.Syd
 import Test.Syd.Validity
 import VCard
-import VCard.Gen ()
+import VCard.Component.Gen ()
 import VCard.TestUtils
 
 spec :: Spec
@@ -21,6 +21,12 @@ spec = do
   describe "vcardContentType" $
     it "is valid" $
       shouldBeValid vcardContentType
+
+  vcardScenarioDirRecur "test_resources/card/valid" $ \cardFile ->
+    it "parses this card strictly" $ do
+      contents <- SB.readFile (fromRelFile cardFile)
+      vcard <- shouldConformStrict $ parseVCardByteString contents
+      shouldBeValid vcard
 
   vcardScenarioDirRecur "test_resources/card/fixable" $ \cardFile -> do
     it "cannot parse this card strictly" $ do
@@ -45,15 +51,6 @@ spec = do
         Right vcard -> expectationFailure $ unlines ["Should have failed but succeeded in parsing this vcard:", ppShow vcard]
       errorFile <- replaceExtension ".error" cardFile
       pure $ pureGoldenStringFile (fromRelFile errorFile) err
-
-  describe "renderCard" $
-    it "roundtrips with parseCard" $
-      forAllValid $ \vcard ->
-        let rendered = renderCard vcard
-            ctx = unlines ["Rendered VCARD:", T.unpack rendered]
-         in context ctx $ do
-              vcard' <- shouldConformStrict $ parseCard rendered
-              vcard' `shouldBe` vcard
 
   describe "renderVCard" $
     it "roundtrips with parseVCard" $

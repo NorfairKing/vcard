@@ -41,7 +41,6 @@ module VCard.Component.Class
 where
 
 import Conformance
-import Control.DeepSeq
 import Control.Exception
 import Data.DList (DList (..))
 import qualified Data.DList as DList
@@ -54,18 +53,12 @@ import Data.Proxy
 import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Text (Text)
-import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Encoding.Error as TE
-import qualified Data.Time as Time
 import Data.Validity
 import Data.Validity.Text ()
 import Data.Validity.Time ()
 import Data.Void
-import GHC.Generics (Generic)
 import VCard.ContentLine
 import VCard.Property
-import VCard.PropertyType
-import VCard.UnfoldedLine
 
 type ComponentName = Text
 
@@ -119,7 +112,7 @@ instance Exception ComponentParseFixableError where
     ComponentParseFixableErrorPropertyFixableError ppfe -> displayException ppfe
     ComponentParseFixableErrorMoreThanOneRequiredPropertyValue name v1 v2 vRest ->
       unlines $ unwords ["Multiple values of required property, guessing the first:", show name] : map show (v1 : v2 : vRest)
-    ComponentParseFixableErrorMoreThanOneRequiredPropertyValue name v1 v2 vRest ->
+    ComponentParseFixableErrorMoreThanOneOptionalPropertyValue name v1 v2 vRest ->
       unlines $ unwords ["Multiple values of optional property, guessing the first:", show name] : map show (v1 : v2 : vRest)
     ComponentParseFixableErrorInvalidPropertyOmitted cl ->
       unwords ["Invalid property omitted:", show cl]
@@ -427,13 +420,3 @@ setOfPropertiesP ::
   Map ContentLineName (NonEmpty ContentLineValue) ->
   ConformComponent (Set a)
 setOfPropertiesP = fmap S.fromList . listOfPropertiesP
-
-subComponentsP ::
-  forall component.
-  (IsComponent component) =>
-  Map ComponentName (NonEmpty Component) ->
-  ConformComponent [component]
-subComponentsP =
-  mapM componentP
-    . maybe [] NE.toList
-    . M.lookup (componentName (Proxy :: Proxy component))

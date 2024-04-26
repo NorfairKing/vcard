@@ -4,21 +4,16 @@
 
 module VCard.Component.V4
   ( Card (..),
-    renderCard,
   )
 where
 
 import Control.DeepSeq
-import Data.DList (DList)
 import qualified Data.DList as DList
 import Data.Proxy
-import Data.Text (Text)
 import Data.Validity
 import GHC.Generics (Generic)
 import VCard.Component.Class
-import VCard.ContentLine
 import VCard.Property
-import VCard.UnfoldedLine
 
 data Card = Card
   { cardVersion :: !Version,
@@ -50,10 +45,3 @@ instance IsComponent Card where
         DList.singleton $ propertyContentLineB cardVersion,
         DList.singleton $ propertyContentLineB cardFormattedName
       ]
-
-renderCard :: Card -> Text
-renderCard =
-  renderUnfoldedLines
-    . map renderContentLineToUnfoldedLine
-    . DList.toList
-    . namedComponentB

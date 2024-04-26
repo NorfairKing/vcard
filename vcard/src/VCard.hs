@@ -25,6 +25,10 @@ module VCard
     VCardParseFixableError (..),
     VCardParseWarning (..),
 
+    -- *** Helpers
+    renderComponentText,
+    parseComponentFromText,
+
     -- *** Running a 'Conform'
     runConformStrict,
     runConform,
@@ -37,26 +41,19 @@ where
 
 import Conformance
 import Control.Arrow (left)
-import Control.DeepSeq
 import Control.Exception
 import Control.Monad
 import Data.ByteString (ByteString)
 import Data.DList (DList)
 import qualified Data.DList as DList
-import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
-import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Proxy
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
-import Data.Validity
 import Data.Void
-import GHC.Generics (Generic)
 import VCard.Component
 import VCard.ContentLine
-import VCard.Property
 import VCard.UnfoldedLine
 
 -- | MIME Content type
@@ -102,6 +99,13 @@ renderVCard =
 vcardB :: VCard -> DList ContentLine
 vcardB = foldMap namedComponentB
 
+renderCard :: Card -> Text
+renderCard =
+  renderUnfoldedLines
+    . map renderContentLineToUnfoldedLine
+    . DList.toList
+    . namedComponentB
+
 parseVCardByteString ::
   ByteString ->
   ConformVCard
@@ -121,12 +125,12 @@ parseVCard contents = do
       parseGeneralComponents contentLines
   if M.null componentMap
     then pure ([] :: VCard)
-    else fmap concat $ forM (M.toList componentMap) $ \(componentName, components) ->
+    else fmap concat $ forM (M.toList componentMap) $ \(name, components) ->
       conformMapAll
         ComponentParseError
         ComponentParseFixableError
         ComponentParseWarning
-        $ mapM (namedComponentP componentName)
+        $ mapM (namedComponentP name)
         $ NE.toList components
 
 parseCard ::
@@ -135,14 +139,14 @@ parseCard ::
 parseCard contents = do
   unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
   contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-  (componentName, component) <-
+  (name, component) <-
     conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $
       parseGeneralComponent contentLines
   conformMapAll
     ComponentParseError
     ComponentParseFixableError
     ComponentParseWarning
-    $ namedComponentP componentName component
+    $ namedComponentP name component
 
 data VCardParseError
   = TextDecodingError !TE.UnicodeException
@@ -179,3 +183,27 @@ instance Exception VCardParseWarning where
     ComponentParseWarning cw -> displayException cw
 
 type ConformVCard a = Conform VCardParseError VCardParseFixableError VCardParseWarning a
+
+-- | Render an individual component from Text directly
+--
+-- You probably don't want to use this.
+-- Individual components are not described by the spec as text.
+renderComponentText :: (IsComponent component) => component -> Text
+renderComponentText =
+  renderUnfoldedLines
+    . map renderContentLineToUnfoldedLine
+    . DList.toList
+    . namedComponentB
+
+-- | Parse an individual component from Text directly
+--
+-- You probably don't want to use this.
+-- Individual components are not described by the spec as text.
+parseComponentFromText ::
+  (IsComponent component) =>
+  Text ->
+  ConformVCard component
+parseComponentFromText contents = do
+  unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
+  contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
+  conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $ parseComponentFromContentLines contentLines
