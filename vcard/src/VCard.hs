@@ -1,7 +1,5 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wno-duplicate-exports #-}
 
@@ -56,6 +54,7 @@ import qualified Data.Text.Encoding.Error as TE
 import Data.Validity
 import Data.Void
 import GHC.Generics (Generic)
+import VCard.Component
 import VCard.ContentLine
 import VCard.Property
 import VCard.UnfoldedLine
@@ -100,22 +99,12 @@ renderVCard =
     . DList.toList
     . vcardB
 
-renderCard :: Card -> Text
-renderCard =
-  renderUnfoldedLines
-    . map renderContentLineToUnfoldedLine
-    . DList.toList
-    . cardB
-
 vcardB :: VCard -> DList ContentLine
-vcardB = foldMap cardB
+vcardB = foldMap namedComponentB
 
 parseVCardByteString ::
   ByteString ->
-  Conform
-    VCardParseError
-    VCardParseFixableError
-    VCardParseWarning
+  ConformVCard
     VCard
 parseVCardByteString contents = do
   textContents <- conformFromEither $ left TextDecodingError $ TE.decodeUtf8' contents
@@ -127,21 +116,18 @@ parseVCard ::
 parseVCard contents = do
   unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
   contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-  componentMap <- parseGeneralComponents contentLines
+  componentMap <-
+    conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $
+      parseGeneralComponents contentLines
   if M.null componentMap
     then pure ([] :: VCard)
     else fmap concat $ forM (M.toList componentMap) $ \(componentName, components) ->
-      case componentName of
-        "VCARD" ->
-          conformMapAll
-            CardParseError
-            CardParseFixableError
-            absurd
-            $ mapM cardP
-            $ NE.toList components
-        _ -> do
-          emitWarning $ ComponentWarning $ UnknownComponent componentName
-          pure []
+      conformMapAll
+        ComponentParseError
+        ComponentParseFixableError
+        ComponentParseWarning
+        $ mapM (namedComponentP componentName)
+        $ NE.toList components
 
 parseCard ::
   Text ->
@@ -149,168 +135,14 @@ parseCard ::
 parseCard contents = do
   unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
   contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-  (componentName, component) <- parseGeneralComponent contentLines
-  case componentName of
-    "VCARD" ->
-      conformMapAll
-        CardParseError
-        CardParseFixableError
-        absurd
-        $ cardP component
-    _ -> unfixableError $ ComponentNotCard componentName
-
-type ComponentName = Text -- Only "VCARD" at the moment
-
-type Component = Map ContentLineName (NonEmpty ContentLineValue)
-
-data ComponentParseError
-  = ComponentParseErrorMissingBegin
-  | ComponentParseErrorMissingEnd !Text
-  | ComponentParseErrorIncorrectEnd !Text !Text
-  deriving (Show, Eq, Ord)
-
-instance Exception ComponentParseError where
-  displayException = \case
-    ComponentParseErrorMissingBegin -> "Tried to parse a component, but didn't find a BEGIN property."
-    ComponentParseErrorMissingEnd n ->
-      unwords
-        [ "Missing END property for component with name",
-          show n
-        ]
-    ComponentParseErrorIncorrectEnd expected actual ->
-      unwords
-        [ unwords ["Missing END property for component with name", show expected],
-          unwords ["found an END property for component with name", show actual, "instead."]
-        ]
-
-data ComponentWarning = UnknownComponent !Text
-  deriving (Show, Eq)
-
-instance Exception ComponentWarning where
-  displayException = \case
-    UnknownComponent t ->
-      unwords
-        [ "Unknown component:",
-          show t
-        ]
-
-renderGeneralComponents :: Map ComponentName (NonEmpty Component) -> DList ContentLine
-renderGeneralComponents =
-  foldMap
-    ( \(name, components) ->
-        foldMap (renderGeneralComponent name) (NE.toList components)
-    )
-    . M.toList
-
-renderGeneralComponent :: Text -> Component -> DList ContentLine
-renderGeneralComponent name componentProperties =
-  mconcat
-    [ DList.singleton $ propertyContentLineB (Begin name),
-      DList.fromList $
-        concatMap
-          ( \(n, values) ->
-              map (ContentLine Nothing n) (NE.toList values)
-          )
-          (M.toList componentProperties),
-      DList.singleton $ propertyContentLineB (End name)
-    ]
-
-parseGeneralComponents ::
-  [ContentLine] ->
-  ConformVCard
-    (Map ComponentName (NonEmpty Component))
-parseGeneralComponents = go
-  where
-    go ::
-      [ContentLine] ->
-      ConformVCard (Map ComponentName (NonEmpty Component))
-    go = \case
-      [] -> pure M.empty
-      cls -> do
-        ((name, component), leftovers) <- parseGeneralComponentHelper cls
-        restComponents <- go leftovers
-        pure (M.insertWith (<>) name (component :| []) restComponents)
-
-parseGeneralComponent ::
-  [ContentLine] ->
-  ConformVCard (Text, Component)
-parseGeneralComponent =
-  -- TODO check that there were no other lines after this.
-  fmap fst . parseGeneralComponentHelper
-
-parseGeneralComponentHelper ::
-  [ContentLine] ->
-  ConformVCard
-    ((ComponentName, Component), [ContentLine])
-parseGeneralComponentHelper = \case
-  [] -> unfixableError $ ComponentParseError ComponentParseErrorMissingBegin
-  (firstCL : restCLs) -> do
-    Begin name <-
-      conformMapAll
-        (CardParseError . PropertyParseError)
-        (CardParseFixableError . PropertyParseFixableError)
-        absurd
-        $ propertyContentLineP firstCL
-    go name M.empty M.empty restCLs
-  where
-    go ::
-      Text ->
-      Map ContentLineName (NonEmpty ContentLineValue) ->
-      Map ComponentName (NonEmpty Component) ->
-      [ContentLine] ->
-      ConformVCard
-        ((ComponentName, Component), [ContentLine])
-    go name properties subComponents = \case
-      [] -> unfixableError $ ComponentParseError $ ComponentParseErrorMissingEnd name
-      (cl : rest) ->
-        case contentLineName cl of
-          "END" -> do
-            End name' <-
-              conformMapAll
-                (CardParseError . PropertyParseError)
-                (CardParseFixableError . PropertyParseFixableError)
-                absurd
-                $ propertyContentLineP
-                  cl
-            if name' == name
-              then
-                pure
-                  ( ( name,
-                      properties
-                    ),
-                    rest
-                  )
-              else unfixableError $ ComponentParseError $ ComponentParseErrorIncorrectEnd name name'
-          "BEGIN" -> do
-            ((name', subComponent), leftovers) <- parseGeneralComponentHelper (cl : rest)
-            go
-              name
-              properties
-              (M.insertWith (flip (<>)) name' (subComponent :| []) subComponents)
-              leftovers
-          _ ->
-            go
-              name
-              (M.insertWith (flip (<>)) (contentLineName cl) (contentLineValue cl :| []) properties)
-              subComponents
-              rest
-
-requiredPropertyP :: forall a. (IsProperty a) => Map ContentLineName (NonEmpty ContentLineValue) -> ConformCard a
-requiredPropertyP m = case M.lookup name m of
-  Nothing -> unfixableError $ CardParseErrorMissingRequiredProperty name
-  Just (value :| restValues) -> do
-    case NE.nonEmpty restValues of
-      Nothing -> pure ()
-      Just (secondValue :| lastValues) ->
-        emitFixableError $ MoreThanOneRequiredPropertyValue name value secondValue lastValues
-    conformMapAll PropertyParseError PropertyParseFixableError absurd $ propertyContentLineP (ContentLine Nothing name value)
-  where
-    name = propertyName (Proxy :: Proxy a)
-
-requiredPropertyB :: (IsProperty property) => property -> Map ContentLineName (NonEmpty ContentLineValue)
-requiredPropertyB property =
-  let cl = propertyContentLineB property
-   in M.singleton (contentLineName cl) (contentLineValue cl :| [])
+  (componentName, component) <-
+    conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $
+      parseGeneralComponent contentLines
+  conformMapAll
+    ComponentParseError
+    ComponentParseFixableError
+    ComponentParseWarning
+    $ namedComponentP componentName component
 
 data VCardParseError
   = TextDecodingError !TE.UnicodeException
@@ -318,7 +150,6 @@ data VCardParseError
   | ContentLineParseError !String
   | ComponentParseError !ComponentParseError
   | ComponentNotCard !Text
-  | CardParseError !CardParseError
   deriving (Show, Eq)
 
 instance Exception VCardParseError where
@@ -328,88 +159,23 @@ instance Exception VCardParseError where
     ContentLineParseError s -> s
     ComponentParseError cpe -> displayException cpe
     ComponentNotCard n -> unwords ["Component was not a VCARD:", show n]
-    CardParseError cpe -> displayException cpe
 
 data VCardParseFixableError
   = UnfoldingFixableError !UnfoldingFixableError
-  | CardParseFixableError !CardParseFixableError
+  | ComponentParseFixableError !ComponentParseFixableError
   deriving (Show, Eq)
 
 instance Exception VCardParseFixableError where
   displayException = \case
     UnfoldingFixableError ue -> displayException ue
-    CardParseFixableError cpfe -> displayException cpfe
+    ComponentParseFixableError cpfe -> displayException cpfe
 
 data VCardParseWarning
-  = ComponentWarning !ComponentWarning
+  = ComponentParseWarning !ComponentParseWarning
   deriving (Show, Eq)
 
 instance Exception VCardParseWarning where
   displayException = \case
-    ComponentWarning cw -> displayException cw
+    ComponentParseWarning cw -> displayException cw
 
 type ConformVCard a = Conform VCardParseError VCardParseFixableError VCardParseWarning a
-
--- TODO allow parsing any version of card
-data Card = Card
-  { cardVersion :: !Version,
-    cardFormattedName :: !FormattedName
-  }
-  deriving (Show, Eq, Generic)
-
-instance Validity Card
-
-instance NFData Card
-
-data CardParseError
-  = PropertyParseError !PropertyParseError
-  | CardParseErrorMissingRequiredProperty !ContentLineName
-  deriving (Show, Eq, Generic)
-
-instance Exception CardParseError where
-  displayException = \case
-    PropertyParseError ppe -> displayException ppe
-    CardParseErrorMissingRequiredProperty name ->
-      unwords
-        [ "Missing required property:",
-          show (renderContentLineName name)
-        ]
-
-data CardParseFixableError
-  = PropertyParseFixableError !PropertyParseFixableError
-  | MoreThanOneRequiredPropertyValue !ContentLineName !ContentLineValue !ContentLineValue ![ContentLineValue]
-  deriving (Show, Eq, Generic)
-
-instance Exception CardParseFixableError where
-  displayException = \case
-    PropertyParseFixableError ppfe -> displayException ppfe
-    MoreThanOneRequiredPropertyValue name v1 v2 vRest ->
-      unlines $ unwords ["Multiple values of required property, guessing the first:", show name] : map show (v1 : v2 : vRest)
-
-type CardParseWarning = Void
-
-type ConformCard a = Conform CardParseError CardParseFixableError CardParseWarning a
-
-cardB :: Card -> DList ContentLine
-cardB Card {..} =
-  mconcat
-    [ DList.singleton $ propertyContentLineB $ Begin "VCARD",
-      -- [Section 6.7.9: VERSION](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
-      --
-      -- @
-      -- Special notes:  This property MUST be present in the vCard object,
-      --    and it must appear immediately after BEGIN:VCARD.  The value MUST
-      --    be "4.0" if the vCard corresponds to this specification.  Note
-      --    that earlier versions of vCard allowed this property to be placed
-      --    anywhere in the vCard object, or even to be absent.
-      -- @
-      DList.singleton $ propertyContentLineB cardVersion,
-      DList.singleton $ propertyContentLineB cardFormattedName,
-      DList.singleton $ propertyContentLineB $ End "VCARD"
-    ]
-
-cardP :: Map ContentLineName (NonEmpty ContentLineValue) -> Conform CardParseError CardParseFixableError CardParseWarning Card
-cardP componentProperties = do
-  cardVersion <- requiredPropertyP componentProperties
-  cardFormattedName <- requiredPropertyP componentProperties
-  pure Card {..}

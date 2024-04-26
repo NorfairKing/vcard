@@ -11,6 +11,9 @@ build-type:     Simple
 library
   exposed-modules:
       VCard
+      VCard.Component
+      VCard.Component.Class
+      VCard.Component.V4
       VCard.ContentLine
       VCard.Parameter
       VCard.Parameter.Class
