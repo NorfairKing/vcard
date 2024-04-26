@@ -13,6 +13,7 @@ library
       VCard
       VCard.Component
       VCard.Component.Class
+      VCard.Component.V3
       VCard.Component.V4
       VCard.ContentLine
       VCard.Parameter

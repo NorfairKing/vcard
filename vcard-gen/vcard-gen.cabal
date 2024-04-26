@@ -65,6 +65,7 @@ test-suite vcard-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      VCard.Component.V3Spec
       VCard.Component.V4Spec
       VCard.ComponentSpec
       VCard.ContentLineSpec
