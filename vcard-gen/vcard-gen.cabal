@@ -32,6 +32,7 @@ library
       VCard.ContentLine.Gen
       VCard.Parameter.Gen
       VCard.Property.Gen
+      VCard.PropertyType.Gen
       VCard.TestUtils
       VCard.UnfoldedLine.Gen
   other-modules:
@@ -72,6 +73,7 @@ test-suite vcard-test
       VCard.ContentLineSpec
       VCard.ParameterSpec
       VCard.PropertySpec
+      VCard.PropertyTypeSpec
       VCard.UnfoldedLineSpec
       VCardSpec
       Paths_vcard_gen

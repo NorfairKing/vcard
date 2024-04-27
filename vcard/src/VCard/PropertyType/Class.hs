@@ -16,18 +16,23 @@ module VCard.PropertyType.Class
 
     -- ** Parsers
     typedPropertyTypeP,
+    unEscapeText,
 
     -- ** Builders
     typedPropertyTypeB,
+    escapeText,
   )
 where
 
 import Conformance
 import Control.Exception
+import qualified Data.CaseInsensitive as CI
+import Data.Int
 import Data.Proxy
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Void
+import Text.Read
 import VCard.ContentLine
 import VCard.Parameter.Class
 import VCard.Parameter.ValueDataType
@@ -39,6 +44,8 @@ data PropertyTypeParseError
       !ValueDataType
       -- Expected
       !ValueDataType
+  | UnparseableBoolean !Text
+  | UnparseableInteger !Text
   deriving (Show, Eq, Ord)
 
 instance Exception PropertyTypeParseError where
@@ -49,6 +56,8 @@ instance Exception PropertyTypeParseError where
           unwords ["actual:   ", show actual],
           unwords ["expected: ", show expected]
         ]
+    UnparseableBoolean t -> unwords ["Unparseable BOOLEAN", show t]
+    UnparseableInteger t -> unwords ["Unparseable INTEGER", show t]
 
 data PropertyTypeParseFixableError
   = ParameterParseFixableError !ParameterParseFixableError
@@ -91,7 +100,7 @@ class IsPropertyType propertyType where
   -- | Builder for the property type
   propertyTypeB :: propertyType -> ContentLineValue
 
--- [Section 4.1](https://datatracker.ietf.org/doc/html/rfc6350#section-4.1)
+-- [RFC 6350 Section 4.1](https://datatracker.ietf.org/doc/html/rfc6350#section-4.1)
 --
 -- @
 -- "text": The "text" value type should be used to identify values that
@@ -242,6 +251,61 @@ unEscapeText = T.pack . go . T.unpack
       '\\' : 'n' : rest -> '\n' : go rest
       '\\' : 'N' : rest -> '\n' : go rest
       c : rest -> c : go rest
+
+-- [RFC 6350 Section 4.4](https://datatracker.ietf.org/doc/html/rfc6350#section-4.4)
+--
+-- @
+-- "boolean": The "boolean" value type is used to express boolean
+-- values.  These values are case-insensitive.
+--
+-- Examples:
+--
+--     TRUE
+--     false
+--     True
+-- @
+instance IsPropertyType Bool where
+  propertyTypeValueType Proxy = TypeBoolean
+  propertyTypeP clv =
+    let t = contentLineValueRaw clv
+     in case CI.mk t of
+          "TRUE" -> pure True
+          "FALSE" -> pure False
+          _ -> unfixableError $ UnparseableBoolean t
+  propertyTypeB =
+    mkSimpleContentLineValue . \case
+      True -> "TRUE"
+      False -> "FALSE"
+
+-- [RFC 6350 Section 4.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.5)
+--
+-- @
+-- "integer": The "integer" value type is used to express signed
+-- integers in decimal format.  If sign is not specified, the value is
+-- assumed positive "+".  Multiple "integer" values can be specified
+-- using the comma-separated notation.  The maximum value is
+-- 9223372036854775807, and the minimum value is -9223372036854775808.
+-- These limits correspond to a signed 64-bit integer using two's-
+-- complement arithmetic.
+--
+-- Examples:
+--
+--     1234567890
+--     -1234556790
+--     +1234556790,432109876
+-- @
+instance IsPropertyType Int64 where
+  propertyTypeValueType Proxy = TypeInteger
+  propertyTypeP clv =
+    let t = contentLineValueRaw clv
+        s = T.unpack t
+        go s' = case readMaybe s' of
+          Nothing -> unfixableError $ UnparseableInteger t
+          Just i -> pure i
+     in case s of
+          '+' : rest -> go rest
+          _ -> go s
+  propertyTypeB = mkSimpleContentLineValue . T.pack . show
 
 typedPropertyTypeP ::
   forall propertyType.
