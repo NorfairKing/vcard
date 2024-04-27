@@ -30,6 +30,7 @@ library
   exposed-modules:
       VCard.Component.Gen
       VCard.ContentLine.Gen
+      VCard.Parameter.Gen
       VCard.Property.Gen
       VCard.TestUtils
       VCard.UnfoldedLine.Gen
@@ -69,6 +70,7 @@ test-suite vcard-test
       VCard.Component.V4Spec
       VCard.ComponentSpec
       VCard.ContentLineSpec
+      VCard.ParameterSpec
       VCard.PropertySpec
       VCard.UnfoldedLineSpec
       VCardSpec

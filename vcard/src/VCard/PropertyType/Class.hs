@@ -4,10 +4,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# OPTIONS_GHC -Wno-dodgy-exports #-}
 
 module VCard.PropertyType.Class
   ( PropertyTypeParseError (..),
     PropertyTypeParseFixableError (..),
+    PropertyTypeParseWarning (..),
     IsPropertyType (..),
 
     -- * Helpers for defining IsPropertyType
@@ -31,7 +33,8 @@ import VCard.Parameter.Class
 import VCard.Parameter.ValueDataType
 
 data PropertyTypeParseError
-  = UnexpectedValueType
+  = ParameterParseError !ParameterParseError
+  | UnexpectedValueType
       -- Actual
       !ValueDataType
       -- Expected

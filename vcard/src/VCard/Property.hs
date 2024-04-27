@@ -17,9 +17,18 @@ module VCard.Property
     propertyContentLineB,
 
     -- ** Properties
+
+    -- *** Begin
     Begin (..),
+
+    -- *** End
     End (..),
+
+    -- *** Formatted name
     FormattedName (..),
+    mkFormattedName,
+
+    -- *** Version
     Version (..),
   )
 where
@@ -34,6 +43,7 @@ import Data.Validity.Text ()
 import Data.Void
 import GHC.Generics (Generic)
 import VCard.ContentLine
+import VCard.Parameter
 import VCard.PropertyType
 
 data PropertyParseError
@@ -132,6 +142,15 @@ viaPropertyTypeP func clv = do
   propertyType <- conformMapAll PropertyTypeParseError PropertyTypeParseFixableError id $ typedPropertyTypeP clv
   func propertyType
 
+propertyParamP ::
+  (IsParameter param) =>
+  ContentLineValue ->
+  ConformProperty (Maybe param)
+propertyParamP clv =
+  conformMapAll (PropertyTypeParseError . ParameterParseError) (PropertyTypeParseFixableError . ParameterParseFixableError) id $
+    optionalParam $
+      contentLineValueParams clv
+
 -- | BEGIN of a (VCARD) component
 newtype Begin = Begin {unBegin :: Text}
   deriving (Show, Eq, Ord, Generic)
@@ -183,7 +202,8 @@ instance IsProperty End where
 --       FN:Mr. John Q. Public\, Esq.
 -- @
 data FormattedName = FormattedName
-  { formattedNameValue :: Text
+  { formattedNameValue :: Text,
+    formattedNameLanguage :: !(Maybe Language)
   }
   deriving (Show, Eq, Generic)
 
@@ -193,8 +213,17 @@ instance NFData FormattedName
 
 instance IsProperty FormattedName where
   propertyName Proxy = "FN"
-  propertyP = wrapPropertyTypeP FormattedName
-  propertyB = propertyTypeB . formattedNameValue
+  propertyP clv = do
+    formattedNameLanguage <- propertyParamP clv
+    wrapPropertyTypeP (\formattedNameValue -> FormattedName {..}) clv
+  propertyB FormattedName {..} =
+    insertMParam formattedNameLanguage $
+      propertyTypeB formattedNameValue
+
+mkFormattedName :: Text -> FormattedName
+mkFormattedName formattedNameValue =
+  let formattedNameLanguage = Nothing
+   in FormattedName {..}
 
 -- [Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
 --

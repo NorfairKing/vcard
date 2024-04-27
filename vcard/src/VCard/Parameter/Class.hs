@@ -4,12 +4,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans -Wno-dodgy-exports #-}
 
 module VCard.Parameter.Class
-  ( ParameterParseError,
-    ParameterParseFixableError,
-    ParameterParseWarning,
+  ( ParameterParseError (..),
+    ParameterParseFixableError (..),
+    ParameterParseWarning (..),
     IsParameter (..),
 
     -- ** Parsing
@@ -17,6 +17,7 @@ module VCard.Parameter.Class
 
     -- ** Rendering
     insertParam,
+    insertMParam,
   )
 where
 
@@ -99,3 +100,6 @@ insertParam param clv =
     { contentLineValueParams =
         M.insert (parameterName (Proxy :: Proxy param)) (parameterB param :| []) (contentLineValueParams clv)
     }
+
+insertMParam :: forall param. (IsParameter param) => Maybe param -> ContentLineValue -> ContentLineValue
+insertMParam = maybe id insertParam

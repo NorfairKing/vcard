@@ -14,6 +14,7 @@ import GHC.Stack (HasCallStack, withFrozenCallStack)
 import Test.Syd
 import Test.Syd.Validity
 import VCard.ContentLine
+import VCard.Parameter.Gen ()
 import VCard.Property
 import VCard.UnfoldedLine
 
