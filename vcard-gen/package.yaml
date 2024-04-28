@@ -15,7 +15,6 @@ library:
   - case-insensitive
   - conformance
   - conformance-gen
-  - containers
   - dlist
   - genvalidity
   - genvalidity-bytestring
@@ -28,7 +27,6 @@ library:
   - path
   - sydtest
   - text
-  - time
   - vcard
 
 benchmarks:
@@ -41,15 +39,11 @@ benchmarks:
     - -with-rtsopts=-N
     - -Wall
     dependencies:
-    - QuickCheck
     - criterion
-    - deepseq
-    - genvalidity
     - genvalidity-criterion
     - genvalidity-vector
     - vcard
     - vcard-gen
-    - vector
 
 tests:
   vcard-test:
@@ -65,19 +59,12 @@ tests:
     - bytestring
     - conformance
     - conformance-gen
-    - containers
     - dlist
-    - genvalidity
     - genvalidity-sydtest
     - genvalidity-text
     - vcard
     - vcard-gen
     - megaparsec
-    - network-uri
     - path
-    - path-io
-    - pretty-show
     - sydtest
     - text
-    - time
-    - validity-network-uri
