@@ -16,10 +16,14 @@ module VCard.PropertyType.Class
 
     -- ** Parsers
     typedPropertyTypeP,
+    propertyTypeListP,
     unEscapeText,
+    splitOnCommas,
+    splitOnSemicolons,
 
     -- ** Builders
     typedPropertyTypeB,
+    propertyTypeListB,
     escapeText,
   )
 where
@@ -333,3 +337,54 @@ typedPropertyTypeB ::
 typedPropertyTypeB =
   insertParam (propertyTypeValueType (Proxy :: Proxy propertyType))
     . propertyTypeB
+
+propertyTypeListP ::
+  (IsPropertyType propertyType) =>
+  ContentLineValue ->
+  ConformPropertyType [propertyType]
+propertyTypeListP clv =
+  if T.null (contentLineValueRaw clv)
+    then pure []
+    else
+      let clvs = do
+            raw <- splitOnSemicolons (contentLineValueRaw clv)
+            pure (clv {contentLineValueRaw = raw})
+       in mapM typedPropertyTypeP clvs
+
+-- Split on commas, but not escaped commas.
+splitOnCommas :: Text -> [Text]
+splitOnCommas = \case
+  "" -> []
+  t -> map T.pack $ go [] $ T.unpack t
+  where
+    go :: String -> String -> [String]
+    go acc = \case
+      [] -> [reverse acc]
+      '\\' : '\\' : rest -> go ('\\' : '\\' : acc) rest
+      '\\' : ',' : rest -> go (',' : '\\' : acc) rest
+      ',' : rest -> reverse acc : go [] rest
+      c : rest -> go (c : acc) rest
+
+-- Split on semicolons, but not escaped semicolons.
+splitOnSemicolons :: Text -> [Text]
+splitOnSemicolons = \case
+  "" -> []
+  t -> map T.pack $ go [] $ T.unpack t
+  where
+    go :: String -> String -> [String]
+    go acc = \case
+      [] -> [reverse acc]
+      '\\' : '\\' : rest -> go ('\\' : '\\' : acc) rest
+      '\\' : ';' : rest -> go (';' : '\\' : acc) rest
+      ';' : rest -> reverse acc : go [] rest
+      c : rest -> go (c : acc) rest
+
+propertyTypeListB :: (IsPropertyType propertyType) => [propertyType] -> ContentLineValue
+propertyTypeListB = \case
+  [] -> emptyContentLineValue
+  (pt : pts) ->
+    let clv = propertyTypeB pt
+        raw =
+          T.intercalate ";" $
+            contentLineValueRaw clv : map (contentLineValueRaw . propertyTypeB) pts
+     in clv {contentLineValueRaw = raw}

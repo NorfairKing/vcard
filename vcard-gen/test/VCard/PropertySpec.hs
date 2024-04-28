@@ -126,6 +126,153 @@ spec = do
     -- @
     propertyExampleSpec "FN:Meister Berger" (mkFormattedName "Meister Berger")
 
+  describe "Name" $ do
+    genValidSpec @Name
+    propertySpec @Name
+
+    -- [RFC 2425 Section 8.2](https://datatracker.ietf.org/doc/html/rfc2425#section-8.2)
+    --
+    -- @
+    -- n:Jensen;Bj=F8rn
+    -- @
+    propertyParseExampleLenientSpec "n:Jensen;Bj=F8rn" (mkName ["Jensen"] ["Bj=F8rn"] [] [] [])
+
+    -- [RFC 2425 Section 8.3](https://datatracker.ietf.org/doc/html/rfc2425#section-8.3)
+    --
+    -- @
+    -- n:Berger;Meister
+    -- @
+    propertyParseExampleLenientSpec "n:Berger;Meister" (mkName ["Berger"] ["Meister"] [] [] [])
+
+    -- [RFC 2426 Section 3.6.5](https://datatracker.ietf.org/doc/html/rfc2426#section-3.6.5)
+    --
+    -- @
+    -- N:van der Harten;Rene;J.;Sir;R.D.O.N.
+    -- @
+    propertyExampleSpec "N:van der Harten;Rene;J.;Sir;R.D.O.N." (mkName ["van der Harten"] ["Rene"] ["J."] ["Sir"] ["R.D.O.N."])
+    -- @
+    -- N:Pau;Shou Chang;Robert
+    -- @
+    propertyParseExampleLenientSpec "N:Pau;Shou Chang;Robert" (mkName ["Pau"] ["Shou Chang"] ["Robert"] [] [])
+    -- @
+    -- N:Koura;Osamu
+    -- @
+    propertyParseExampleLenientSpec "N:Koura;Osamu" (mkName ["Koura"] ["Osamu"] [] [] [])
+    -- @
+    -- N:del Pozo Triscon;Oscar
+    -- @
+    propertyParseExampleLenientSpec "N:del Pozo Triscon;Oscar" (mkName ["del Pozo Triscon"] ["Oscar"] [] [] [])
+    -- @
+    -- N:d'Aboville;Christine
+    -- @
+    propertyParseExampleLenientSpec "N:d'Aboville;Christine" (mkName ["d'Aboville"] ["Christine"] [] [] [])
+
+    -- [RFC 6350 Section 5.4](https://datatracker.ietf.org/doc/html/rfc6350#section-5.4)
+    --
+    -- @
+    -- N:Yamada;Taro;;;
+    -- @
+    propertyExampleSpec
+      "N:Yamada;Taro;;;"
+      ( mkName
+          ["Yamada"]
+          ["Taro"]
+          []
+          []
+          []
+      )
+
+    -- [RFC 2739 Section 2.3](https://datatracker.ietf.org/doc/html/rfc2739#section-2.3)
+    --
+    -- @
+    -- N:Dun;Alec
+    -- @
+    propertyParseExampleLenientSpec
+      "N:Dun;Alec"
+      (mkName ["Dun"] ["Alec"] [] [] [])
+
+    -- [RFC 2739 Section 6](https://datatracker.ietf.org/doc/html/rfc2739#section-6)
+    --
+    -- @
+    -- N:Small;Tony
+    -- @
+    propertyParseExampleLenientSpec "N:Small;Tony" (mkName ["Small"] ["Tony"] [] [] [])
+    -- @
+    -- N:Hennessy;Denis
+    -- @
+    propertyParseExampleLenientSpec "N:Hennessy;Denis" (mkName ["Hennessy"] ["Denis"] [] [] [])
+    -- @
+    -- N:Dawson;Frank
+    -- @
+    propertyParseExampleLenientSpec "N:Dawson;Frank" (mkName ["Dawson"] ["Frank"] [] [] [])
+    -- @
+    -- N:Egen;Pat
+    -- @
+    propertyParseExampleLenientSpec "N:Egen;Pat" (mkName ["Egen"] ["Pat"] [] [] [])
+
+    -- [RFC 2426 Section 3.1.2](https://datatracker.ietf.org/doc/html/rfc2426#section-3.1.2)
+    -- and
+    -- [RFC 6350 Section 6.2.2](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.2)
+    --
+    -- @
+    -- Examples:
+    --
+    --           N:Public;John;Quinlan;Mr.;Esq.
+    --
+    --           N:Stevenson;John;Philip,Paul;Dr.;Jr.,M.D.,A.C.P.
+    -- @
+    propertyExampleSpec
+      "N:Public;John;Quinlan;Mr.;Esq."
+      ( mkName
+          ["Public"]
+          ["John"]
+          ["Quinlan"]
+          ["Mr."]
+          ["Esq."]
+      )
+    propertyExampleSpec
+      "N:Stevenson;John;Philip,Paul;Dr.;Jr.,M.D.,A.C.P."
+      ( mkName
+          ["Stevenson"]
+          ["John"]
+          ["Philip", "Paul"]
+          ["Dr."]
+          ["Jr.", "M.D.", "A.C.P."]
+      )
+    -- [RFC 6350 Section 7.2.1](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2.1)
+    -- and
+    -- [RFC 6350 Section 7.2.3](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2.3)
+    -- and
+    -- [RFC 6350 Section 7.2.4](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2.4)
+    -- and
+    -- [RFC 6350 Section 7.2.5](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2.5)
+    --
+    -- @
+    -- N:Doe;J.;;;
+    -- @
+    propertyExampleSpec
+      "N:Doe;J.;;;"
+      ( mkName
+          ["Doe"]
+          ["J."]
+          []
+          []
+          []
+      )
+    -- [RFC 6350 Section 8](https://datatracker.ietf.org/doc/html/rfc6350#section-8)
+    --
+    -- @
+    -- N:Perreault;Simon;;;ing. jr,M.Sc.
+    -- @
+    propertyExampleSpec
+      "N:Perreault;Simon;;;ing. jr,M.Sc"
+      (mkName ["Perreault"] ["Simon"] [] [] ["ing. jr", "M.Sc"])
+
+    -- [RFC 6352 Section 6.3.2](https://datatracker.ietf.org/doc/html/rfc6352#section-6.3.2)
+    propertyParseExampleLenientSpec
+      "N:Daboo;Cyrus"
+      (mkName ["Daboo"] ["Cyrus"] [] [] [])
+
   describe "Version" $ do
     genValidSpec @Version
     propertySpec @Version

@@ -69,14 +69,14 @@ TODO
   - [ ] 5.11. TZ
 - [ ] 6.  vCard Properties
   - [ ] 6.1.  General Properties
-    - [ ] 6.1.1.  BEGIN 
-    - [ ] 6.1.2.  END 
+    - [X] 6.1.1.  BEGIN 
+    - [X] 6.1.2.  END 
     - [ ] 6.1.3.  SOURCE
     - [ ] 6.1.4.  KIND
     - [ ] 6.1.5.  XML 
   - [ ] 6.2.  Identification Properties 
-    - [ ] 6.2.1.  FN
-    - [ ] 6.2.2.  N 
+    - [X] 6.2.1.  FN
+    - [X] 6.2.2.  N 
     - [ ] 6.2.3.  NICKNAME
     - [ ] 6.2.4.  PHOTO 
     - [ ] 6.2.5.  BDAY

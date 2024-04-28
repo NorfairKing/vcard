@@ -16,6 +16,11 @@ module VCard.Property
     propertyContentLineP,
     propertyContentLineB,
 
+    -- ** Helpers for implementing IsProperty
+    wrapPropertyTypeP,
+    viaPropertyTypeP,
+    viaPropertyTypeListP,
+
     -- ** Properties
 
     -- *** Begin
@@ -28,6 +33,10 @@ module VCard.Property
     FormattedName (..),
     mkFormattedName,
 
+    -- *** Name
+    Name (..),
+    mkName,
+
     -- *** Version
     Version (..),
   )
@@ -38,6 +47,7 @@ import Control.DeepSeq
 import Control.Exception
 import Data.Proxy
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Validity
 import Data.Validity.Text ()
 import Data.Void
@@ -69,11 +79,13 @@ instance Exception PropertyParseError where
 
 data PropertyParseFixableError
   = PropertyTypeParseFixableError !PropertyTypeParseFixableError
+  | NameNotFiveComponents ![[Text]]
   deriving (Show, Eq, Generic)
 
 instance Exception PropertyParseFixableError where
   displayException = \case
     PropertyTypeParseFixableError ptpfe -> displayException ptpfe
+    NameNotFiveComponents namess -> unwords ["Expected exactly five lists of names, but found:", show namess]
 
 type PropertyParseWarning = Void
 
@@ -139,7 +151,20 @@ viaPropertyTypeP ::
   (propertyType -> ConformProperty property) ->
   (ContentLineValue -> ConformProperty property)
 viaPropertyTypeP func clv = do
-  propertyType <- conformMapAll PropertyTypeParseError PropertyTypeParseFixableError id $ typedPropertyTypeP clv
+  propertyType <-
+    conformMapAll PropertyTypeParseError PropertyTypeParseFixableError id $
+      typedPropertyTypeP clv
+  func propertyType
+
+viaPropertyTypeListP ::
+  forall propertyType property.
+  (IsPropertyType propertyType) =>
+  ([propertyType] -> ConformProperty property) ->
+  (ContentLineValue -> ConformProperty property)
+viaPropertyTypeListP func clv = do
+  propertyType <-
+    conformMapAll PropertyTypeParseError PropertyTypeParseFixableError id $
+      propertyTypeListP clv
   func propertyType
 
 propertyParamP ::
@@ -224,6 +249,109 @@ mkFormattedName :: Text -> FormattedName
 mkFormattedName formattedNameValue =
   let formattedNameLanguage = Nothing
    in FormattedName {..}
+
+-- [Section 6.2.2](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.2)
+--
+-- @
+-- Purpose:  To specify the components of the name of the object the
+--    vCard represents.
+--
+-- Value type:  A single structured text value.  Each component can have
+--    multiple values.
+--
+-- Cardinality:  *1
+--
+-- Special note:  The structured property value corresponds, in
+--    sequence, to the Family Names (also known as surnames), Given
+--    Names, Additional Names, Honorific Prefixes, and Honorific
+--    Suffixes.  The text components are separated by the SEMICOLON
+--    character (U+003B).  Individual text components can include
+--    multiple text values separated by the COMMA character (U+002C).
+--    This property is based on the semantics of the X.520 individual
+--    name attributes [CCITT.X520.1988].  The property SHOULD be present
+--    in the vCard object when the name of the object the vCard
+--    represents follows the X.520 model.
+--
+--    The SORT-AS parameter MAY be applied to this property.
+--
+-- ABNF:
+--
+--   N-param = "VALUE=text" / sort-as-param / language-param
+--           / altid-param / any-param
+--   N-value = list-component 4(";" list-component)
+--
+-- Examples:
+--
+--           N:Public;John;Quinlan;Mr.;Esq.
+--
+--           N:Stevenson;John;Philip,Paul;Dr.;Jr.,M.D.,A.C.P.
+-- @
+data Name = Name
+  { nameSurnames :: [Text],
+    nameGivenNames :: [Text],
+    nameAdditionalNames :: [Text],
+    nameHonorificPrefixes :: [Text],
+    nameHonorificSuffixes :: [Text],
+    nameLanguage :: !(Maybe Language)
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity Name where
+  validate n@Name {..} =
+    let nonemptyNames f ns = decorate f $ decorateList ns $ \n' ->
+          declare "The name is nonempty" $ not $ T.null n'
+     in mconcat
+          [ genericValidate n,
+            nonemptyNames "nameSurnames" nameSurnames,
+            nonemptyNames "nameGivenNames" nameGivenNames,
+            nonemptyNames "nameAdditionalNames" nameAdditionalNames,
+            nonemptyNames "nameHonorificPrefixes" nameHonorificPrefixes,
+            nonemptyNames "nameHonorificSuffixes" nameHonorificSuffixes
+          ]
+
+instance NFData Name
+
+instance IsProperty Name where
+  propertyName Proxy = "N"
+  propertyP clv = do
+    nameLanguage <- propertyParamP clv
+    let namess = map splitOnCommas (splitOnSemicolons (contentLineValueRaw clv))
+
+    (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) <- case namess of
+      [n1, n2, n3, n4, n5] -> pure (n1, n2, n3, n4, n5)
+      _ -> do
+        emitFixableError $ NameNotFiveComponents namess
+        pure $ case namess of
+          (n1 : n2 : n3 : n4 : n5 : _) -> (n1, n2, n3, n4, n5)
+          (n1 : n2 : n3 : n4 : _) -> (n1, n2, n3, n4, [])
+          (n1 : n2 : n3 : _) -> (n1, n2, n3, [], [])
+          (n1 : n2 : _) -> (n1, n2, [], [], [])
+          (n1 : _) -> (n1, [], [], [], [])
+          [] -> ([], [], [], [], [])
+    pure Name {..}
+
+  propertyB Name {..} =
+    insertMParam nameLanguage $
+      mkSimpleContentLineValue $
+        T.intercalate
+          ";"
+          [ T.intercalate "," nameSurnames,
+            T.intercalate "," nameGivenNames,
+            T.intercalate "," nameAdditionalNames,
+            T.intercalate "," nameHonorificPrefixes,
+            T.intercalate "," nameHonorificSuffixes
+          ]
+
+mkName ::
+  [Text] ->
+  [Text] ->
+  [Text] ->
+  [Text] ->
+  [Text] ->
+  Name
+mkName nameSurnames nameGivenNames nameAdditionalNames nameHonorificPrefixes nameHonorificSuffixes =
+  let nameLanguage = Nothing
+   in Name {..}
 
 -- [Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
 --

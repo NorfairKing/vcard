@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -11,6 +12,7 @@ import Data.GenValidity.Containers ()
 import Data.GenValidity.Text ()
 import qualified Data.Text as T
 import GHC.Stack (HasCallStack, withFrozenCallStack)
+import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
 import VCard.ContentLine
@@ -29,6 +31,18 @@ instance GenValid End where
 instance GenValid FormattedName where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid Name where
+  genValid = do
+    let genNonemptyName = genValid `suchThat` (not . T.null)
+    let genNonemptyNames = genListOf genNonemptyName
+    nameSurnames <- genNonemptyNames
+    nameGivenNames <- genNonemptyNames
+    nameAdditionalNames <- genNonemptyNames
+    nameHonorificPrefixes <- genNonemptyNames
+    nameHonorificSuffixes <- genNonemptyNames
+    nameLanguage <- genValid
+    pure Name {..}
 
 instance GenValid Version where
   genValid = genValidStructurallyWithoutExtraChecking
@@ -65,6 +79,28 @@ propertyParseExampleSpec cl expected = withFrozenCallStack $
       case runConformStrict $ propertyContentLineP cl of
         Left err -> expectationFailure $ show err
         Right actual -> actual `shouldBe` expected
+
+propertyParseExampleLenientSpec ::
+  forall property.
+  ( IsProperty property,
+    Show property,
+    Eq property,
+    HasCallStack
+  ) =>
+  ContentLine ->
+  property ->
+  Spec
+propertyParseExampleLenientSpec cl expected = withFrozenCallStack $ do
+  it "fails to parse this example strictly" $
+    context (show cl) $
+      case runConformStrict $ propertyContentLineP cl of
+        Left _ -> pure ()
+        Right actual -> expectationFailure $ "Should have failed to parse this example, but parsed:" <> show (actual :: property)
+  it "parses this example correctly" $
+    context (show cl) $
+      case runConformLenient $ propertyContentLineP cl of
+        Left err -> expectationFailure $ show err
+        Right (actual, _) -> actual `shouldBe` expected
 
 propertyExampleSpec ::
   ( IsProperty property,
