@@ -49,6 +49,18 @@ instance GenValid Nickname where
     nicknameLanguage <- genValid
     pure Nickname {..}
 
+instance GenValid Sex where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid Gender where
+  genValid = do
+    genderSex <- genValid
+    genderIdentity <- case genderSex of
+      Just _ -> genValid
+      Nothing -> oneof [pure Nothing, Just <$> genNonemptyText]
+    pure Gender {..}
+
 instance GenValid Version where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering

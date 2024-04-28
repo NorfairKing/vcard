@@ -41,6 +41,13 @@ module VCard.Property
     Nickname (..),
     mkNickname,
 
+    -- *** Gender
+    Gender (..),
+    mkGender,
+    Sex (..),
+    parseSex,
+    renderSex,
+
     -- *** Version
     Version (..),
   )
@@ -49,6 +56,7 @@ where
 import Conformance
 import Control.DeepSeq
 import Control.Exception
+import Data.Maybe
 import Data.Proxy
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -84,12 +92,14 @@ instance Exception PropertyParseError where
 data PropertyParseFixableError
   = PropertyTypeParseFixableError !PropertyTypeParseFixableError
   | NameNotFiveComponents ![[Text]]
+  | InvalidSex Text
   deriving (Show, Eq, Generic)
 
 instance Exception PropertyParseFixableError where
   displayException = \case
     PropertyTypeParseFixableError ptpfe -> displayException ptpfe
     NameNotFiveComponents namess -> unwords ["Expected exactly five lists of names, but found:", show namess]
+    InvalidSex sexText -> unwords ["Invalid sex:", show sexText]
 
 type PropertyParseWarning = Void
 
@@ -420,6 +430,130 @@ mkNickname :: [Text] -> Nickname
 mkNickname nicknameValues =
   let nicknameLanguage = Nothing
    in Nickname {..}
+
+-- [RFC 6350 Section 6.2.7](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.7)
+--
+-- @
+-- Purpose:  To specify the components of the sex and gender identity of
+--    the object the vCard represents.
+--
+-- Value type:  A single structured value with two components.  Each
+--    component has a single text value.
+--
+-- Cardinality:  *1
+--
+-- Special notes:  The components correspond, in sequence, to the sex
+--    (biological), and gender identity.  Each component is optional.
+--
+--    Sex component:  A single letter.  M stands for "male", F stands
+--       for "female", O stands for "other", N stands for "none or not
+--       applicable", U stands for "unknown".
+--
+--    Gender identity component:  Free-form text.
+--
+-- ABNF:
+--
+--                 GENDER-param = "VALUE=text" / any-param
+--                 GENDER-value = sex [";" text]
+--
+--                 sex = "" / "M" / "F" / "O" / "N" / "U"
+--
+-- Examples:
+--
+--   GENDER:M
+--   GENDER:F
+--   GENDER:M;Fellow
+--   GENDER:F;grrrl
+--   GENDER:O;intersex
+--   GENDER:;it's complicated
+-- @
+data Gender = Gender
+  { genderSex :: !(Maybe Sex),
+    genderIdentity :: !(Maybe Text)
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity Gender where
+  validate g@Gender {..} =
+    mconcat
+      [ genericValidate g,
+        case genderSex of
+          Just _ -> valid
+          Nothing -> case genderIdentity of
+            Nothing -> valid
+            Just identity ->
+              declare "If there is no sex, but there is an identity, then the identity must not be empty" $
+                not $
+                  T.null identity
+      ]
+
+instance NFData Gender
+
+instance IsProperty Gender where
+  propertyName Proxy = "GENDER"
+  propertyP clv = do
+    let parts = splitOnSemicolons (contentLineValueRaw clv)
+    case parts of
+      [] -> do
+        let genderSex = Nothing
+        let genderIdentity = Nothing
+        pure Gender {..}
+      (sexText : rest) -> do
+        genderSex <- case sexText of
+          "" -> pure Nothing
+          _ -> case parseSex sexText of
+            Just sex -> pure $ Just sex
+            Nothing -> do
+              emitFixableError $ InvalidSex sexText
+              pure Nothing
+        let genderIdentity = case rest of
+              [] -> Nothing
+              (identityText : _) -> Just identityText -- TODO fixable error for extra parts
+        pure Gender {..}
+  propertyB Gender {..} =
+    mkSimpleContentLineValue
+      $ T.intercalate
+        ";"
+      $ concat
+        [ [maybe "" renderSex genderSex],
+          maybeToList genderIdentity
+        ]
+
+mkGender :: Sex -> Gender
+mkGender s =
+  Gender
+    { genderSex = Just s,
+      genderIdentity = Nothing
+    }
+
+data Sex
+  = SexMale
+  | SexFemale
+  | SexOther
+  | SexNone
+  | SexUnknown
+  deriving (Show, Eq, Generic)
+
+instance Validity Sex
+
+instance NFData Sex
+
+parseSex :: Text -> Maybe Sex
+parseSex = \case
+  "M" -> Just SexMale
+  "F" -> Just SexFemale
+  "O" -> Just SexOther
+  "N" -> Just SexNone
+  "U" -> Just SexUnknown
+  _ -> Nothing
+
+renderSex :: Sex -> Text
+renderSex = \case
+  SexMale -> "M"
+  SexFemale -> "F"
+  SexOther -> "O"
+  SexNone -> "N"
+  SexUnknown -> "U"
 
 -- [Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
 --

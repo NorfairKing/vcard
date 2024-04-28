@@ -300,6 +300,54 @@ spec = do
     -- @
     propertyExampleSpec "NICKNAME:me" (mkNickname ["me"])
 
+  describe "Gender" $ do
+    genValidSpec @Sex
+    genValidSpec @Gender
+    propertySpec @Gender
+
+    -- [RFC 6350 Section 6.2.7](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.7)
+    --
+    -- @
+    -- Examples:
+    --
+    --   GENDER:M
+    --   GENDER:F
+    --   GENDER:M;Fellow
+    --   GENDER:F;grrrl
+    --   GENDER:O;intersex
+    --   GENDER:;it's complicated
+    -- @
+    propertyExampleSpec "GENDER:M" (mkGender SexMale)
+    propertyExampleSpec "GENDER:F" (mkGender SexFemale)
+    propertyExampleSpec
+      "GENDER:M;Fellow"
+      ( Gender
+          { genderSex = Just SexMale,
+            genderIdentity = Just "Fellow"
+          }
+      )
+    propertyExampleSpec
+      "GENDER:F;grrrl"
+      ( Gender
+          { genderSex = Just SexFemale,
+            genderIdentity = Just "grrrl"
+          }
+      )
+    propertyExampleSpec
+      "GENDER:O;intersex"
+      ( Gender
+          { genderSex = Just SexOther,
+            genderIdentity = Just "intersex"
+          }
+      )
+    propertyExampleSpec
+      "GENDER:;it's complicated"
+      ( Gender
+          { genderSex = Nothing,
+            genderIdentity = Just "it's complicated"
+          }
+      )
+
   describe "Version" $ do
     genValidSpec @Version
     propertySpec @Version

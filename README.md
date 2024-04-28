@@ -81,7 +81,7 @@ TODO
     - [ ] 6.2.4.  PHOTO 
     - [ ] 6.2.5.  BDAY
     - [ ] 6.2.6.  ANNIVERSARY 
-    - [ ] 6.2.7.  GENDER
+    - [X] 6.2.7.  GENDER
   - [ ] 6.3.  Delivery Addressing Properties
     - [ ] 6.3.1.  ADR 
   - [ ] 6.4.  Communications Properties 
@@ -183,15 +183,15 @@ TODO
 
 ### RFC 6868
 
-- [ ] 1. Introduction
-- [ ] 2. Conventions Used in This Document
-- [ ] 3. Parameter Value Encoding Scheme
-    - [ ] 3.1. iCalendar Example
-    - [ ] 3.2. vCard Example
-- [ ] 4. Security Considerations
-- [ ] 5. Acknowledgments
-- [ ] 6. Normative References
-- [ ] Appendix A. Choice of Quoting Mechanism
+- [X] 1. Introduction
+- [X] 2. Conventions Used in This Document
+- [X] 3. Parameter Value Encoding Scheme
+    - [X] 3.1. iCalendar Example
+    - [X] 3.2. vCard Example
+- [X] 4. Security Considerations
+- [X] 5. Acknowledgments
+- [X] 6. Normative References
+- [X] Appendix A. Choice of Quoting Mechanism
 
 #### [Errata](https://www.rfc-editor.org/errata/rfc6868)
 
