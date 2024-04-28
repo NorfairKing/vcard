@@ -42,7 +42,7 @@ TODO
   - [ ] 3.3.  ABNF Format Definition
   - [ ] 3.4.  Property Value Escaping 
 - [ ] 4.  Property Value Data Types 
-  - [ ] 4.1.  TEXT
+  - [X] 4.1.  TEXT
   - [ ] 4.2.  URI 
   - [ ] 4.3.  DATE, TIME, DATE-TIME, DATE-AND-OR-TIME, and TIMESTAMP
     - [ ] 4.3.1.  DATE
@@ -50,13 +50,13 @@ TODO
     - [ ] 4.3.3.  DATE-TIME 
     - [ ] 4.3.4.  DATE-AND-OR-TIME
     - [ ] 4.3.5.  TIMESTAMP 
-  - [ ] 4.4.  BOOLEAN 
-  - [ ] 4.5.  INTEGER 
+  - [X] 4.4.  BOOLEAN 
+  - [X] 4.5.  INTEGER 
   - [ ] 4.6.  FLOAT 
   - [ ] 4.7.  UTC-OFFSET
   - [ ] 4.8.  LANGUAGE-TAG
 - [ ] 5.  Property Parameters 
-  - [ ] 5.1.  LANGUAGE
+  - [X] 5.1.  LANGUAGE
   - [ ] 5.2.  VALUE 
   - [ ] 5.3.  PREF
   - [ ] 5.4.  ALTID 
@@ -77,7 +77,7 @@ TODO
   - [ ] 6.2.  Identification Properties 
     - [X] 6.2.1.  FN
     - [X] 6.2.2.  N 
-    - [ ] 6.2.3.  NICKNAME
+    - [X] 6.2.3.  NICKNAME
     - [ ] 6.2.4.  PHOTO 
     - [ ] 6.2.5.  BDAY
     - [ ] 6.2.6.  ANNIVERSARY 

@@ -347,7 +347,7 @@ propertyTypeListP clv =
     then pure []
     else
       let clvs = do
-            raw <- splitOnSemicolons (contentLineValueRaw clv)
+            raw <- splitOnCommas (contentLineValueRaw clv)
             pure (clv {contentLineValueRaw = raw})
        in mapM typedPropertyTypeP clvs
 
@@ -385,6 +385,6 @@ propertyTypeListB = \case
   (pt : pts) ->
     let clv = propertyTypeB pt
         raw =
-          T.intercalate ";" $
+          T.intercalate "," $
             contentLineValueRaw clv : map (contentLineValueRaw . propertyTypeB) pts
      in clv {contentLineValueRaw = raw}

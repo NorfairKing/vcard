@@ -273,6 +273,33 @@ spec = do
       "N:Daboo;Cyrus"
       (mkName ["Daboo"] ["Cyrus"] [] [] [])
 
+  describe "Nickname" $ do
+    genValidSpec @Nickname
+    propertySpec @Nickname
+
+    -- [RFC 2426 Section 3.1.3](https://datatracker.ietf.org/doc/html/rfc2426#section-3.1.3)
+    -- and
+    -- [RFC 6350 Section 6.2.3](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.3)
+    --
+    -- @
+    -- Examples:
+    --
+    --           NICKNAME:Robbie
+    --
+    --           NICKNAME:Jim,Jimmie
+    --
+    --           NICKNAME;TYPE=work:Boss
+    -- @
+    propertyExampleSpec "NICKNAME:Robbie" (mkNickname ["Robbie"])
+    propertyExampleSpec "NICKNAME:Jim,Jimmie" (mkNickname ["Jim", "Jimmie"])
+    propertyExampleSpec "NICKNAME:Boss" (mkNickname ["Boss"])
+
+    -- [RFC 6350 Section 6.2.3](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.3)
+    -- @
+    -- NICKNAME:me
+    -- @
+    propertyExampleSpec "NICKNAME:me" (mkNickname ["me"])
+
   describe "Version" $ do
     genValidSpec @Version
     propertySpec @Version

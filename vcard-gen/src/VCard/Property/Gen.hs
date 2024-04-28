@@ -10,6 +10,7 @@ import Data.GenValidity
 import Data.GenValidity.CaseInsensitive ()
 import Data.GenValidity.Containers ()
 import Data.GenValidity.Text ()
+import Data.Text (Text)
 import qualified Data.Text as T
 import GHC.Stack (HasCallStack, withFrozenCallStack)
 import Test.QuickCheck
@@ -34,19 +35,29 @@ instance GenValid FormattedName where
 
 instance GenValid Name where
   genValid = do
-    let genNonemptyName = genValid `suchThat` (not . T.null)
-    let genNonemptyNames = genListOf genNonemptyName
-    nameSurnames <- genNonemptyNames
-    nameGivenNames <- genNonemptyNames
-    nameAdditionalNames <- genNonemptyNames
-    nameHonorificPrefixes <- genNonemptyNames
-    nameHonorificSuffixes <- genNonemptyNames
+    nameSurnames <- genNonemptyTexts
+    nameGivenNames <- genNonemptyTexts
+    nameAdditionalNames <- genNonemptyTexts
+    nameHonorificPrefixes <- genNonemptyTexts
+    nameHonorificSuffixes <- genNonemptyTexts
     nameLanguage <- genValid
     pure Name {..}
+
+instance GenValid Nickname where
+  genValid = do
+    nicknameValues <- genNonemptyTexts
+    nicknameLanguage <- genValid
+    pure Nickname {..}
 
 instance GenValid Version where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+genNonemptyText :: Gen Text
+genNonemptyText = genValid `suchThat` (not . T.null)
+
+genNonemptyTexts :: Gen [Text]
+genNonemptyTexts = genListOf genNonemptyText
 
 propertyRenderExampleSpec ::
   ( Show property,

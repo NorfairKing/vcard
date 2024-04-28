@@ -37,6 +37,10 @@ module VCard.Property
     Name (..),
     mkName,
 
+    -- *** Nickname
+    Nickname (..),
+    mkNickname,
+
     -- *** Version
     Version (..),
   )
@@ -352,6 +356,70 @@ mkName ::
 mkName nameSurnames nameGivenNames nameAdditionalNames nameHonorificPrefixes nameHonorificSuffixes =
   let nameLanguage = Nothing
    in Name {..}
+
+-- [Section 6.2.1](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.1)
+--
+-- @
+-- Purpose:  To specify the text corresponding to the nickname of the
+--    object the vCard represents.
+--
+-- Value type:  One or more text values separated by a COMMA character
+--    (U+002C).
+--
+-- Cardinality:  *
+--
+-- Special note:  The nickname is the descriptive name given instead of
+--    or in addition to the one belonging to the object the vCard
+--    represents.  It can also be used to specify a familiar form of a
+--    proper name specified by the FN or N properties.
+--
+-- ABNF:
+--
+--   NICKNAME-param = "VALUE=text" / type-param / language-param
+--                  / altid-param / pid-param / pref-param / any-param
+--   NICKNAME-value = text-list
+--
+-- Examples:
+--
+--           NICKNAME:Robbie
+--
+--           NICKNAME:Jim,Jimmie
+--
+--           NICKNAME;TYPE=work:Boss
+-- @
+data Nickname = Nickname
+  { nicknameValues :: [Text],
+    nicknameLanguage :: !(Maybe Language)
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity Nickname where
+  validate nn@Nickname {..} =
+    mconcat
+      [ genericValidate nn,
+        decorateList nicknameValues $ \n ->
+          declare "The name is nonempty" $ not $ T.null n
+      ]
+
+instance NFData Nickname
+
+instance IsProperty Nickname where
+  propertyName Proxy = "NICKNAME"
+  propertyP clv = do
+    nicknameLanguage <- propertyParamP clv
+    viaPropertyTypeListP
+      ( \nicknameValues ->
+          pure Nickname {..}
+      )
+      clv
+  propertyB Nickname {..} =
+    insertMParam nicknameLanguage $
+      propertyTypeListB nicknameValues
+
+mkNickname :: [Text] -> Nickname
+mkNickname nicknameValues =
+  let nicknameLanguage = Nothing
+   in Nickname {..}
 
 -- [Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
 --
