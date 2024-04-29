@@ -23,32 +23,42 @@ module VCard.Property
 
     -- ** Properties
 
-    -- *** Begin
+    -- *** General properties
+
+    -- **** Begin
     Begin (..),
 
-    -- *** End
+    -- **** End
     End (..),
 
-    -- *** Formatted name
+    -- **** Source
+    Source (..),
+    mkSource,
+
+    -- *** Identification properties
+
+    -- **** Formatted name
     FormattedName (..),
     mkFormattedName,
 
-    -- *** Name
+    -- **** Name
     Name (..),
     mkName,
 
-    -- *** Nickname
+    -- **** Nickname
     Nickname (..),
     mkNickname,
 
-    -- *** Gender
+    -- **** Gender
     Gender (..),
     mkGender,
     Sex (..),
     parseSex,
     renderSex,
 
-    -- *** Version
+    -- *** Explanatory properties
+
+    -- **** Version
     Version (..),
   )
 where
@@ -215,6 +225,57 @@ instance IsProperty End where
   propertyName Proxy = "END"
   propertyP = wrapPropertyTypeP End
   propertyB = propertyTypeB . unEnd
+
+-- | Source
+--
+-- [RFC 6350 Section 6.1.3](https://datatracker.ietf.org/doc/html/rfc6350#section-6.1.3)
+--
+-- @
+-- Purpose:  To identify the source of directory information contained
+--    in the content type.
+--
+-- Value type:  uri
+--
+-- Cardinality:  *
+--
+-- Special notes:  The SOURCE property is used to provide the means by
+--    which applications knowledgable in the given directory service
+--    protocol can obtain additional or more up-to-date information from
+--    the directory service.  It contains a URI as defined in [RFC3986]
+--    and/or other information referencing the vCard to which the
+--    information pertains.  When directory information is available
+--    from more than one source, the sending entity can pick what it
+--    considers to be the best source, or multiple SOURCE properties can
+--    be included.
+--
+-- ABNF:
+--
+--   SOURCE-param = "VALUE=uri" / pid-param / pref-param / altid-param
+--                / mediatype-param / any-param
+--   SOURCE-value = URI
+--
+-- Examples:
+--
+--   SOURCE:ldap://ldap.example.com/cn=Babs%20Jensen,%20o=Babsco,%20c=US
+--
+--   SOURCE:http://directory.example.com/addressbooks/jdoe/
+--    Jean%20Dupont.vcf
+-- @
+data Source = Source {sourceValue :: URI}
+  deriving (Show, Eq, Ord, Generic)
+
+instance Validity Source
+
+instance NFData Source
+
+instance IsProperty Source where
+  propertyName Proxy = "SOURCE"
+  propertyP = wrapPropertyTypeP Source
+  propertyB = propertyTypeB . sourceValue
+
+mkSource :: URI -> Source
+mkSource sourceValue =
+  Source {..}
 
 -- [Section 6.2.1](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.1)
 --

@@ -19,6 +19,7 @@ import Test.Syd.Validity
 import VCard.ContentLine
 import VCard.Parameter.Gen ()
 import VCard.Property
+import VCard.PropertyType.Gen ()
 import VCard.UnfoldedLine
 
 instance GenValid Begin where
@@ -26,6 +27,10 @@ instance GenValid Begin where
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
 instance GenValid End where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid Source where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 

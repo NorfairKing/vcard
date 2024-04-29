@@ -71,7 +71,7 @@ TODO
   - [ ] 6.1.  General Properties
     - [X] 6.1.1.  BEGIN 
     - [X] 6.1.2.  END 
-    - [ ] 6.1.3.  SOURCE
+    - [X] 6.1.3.  SOURCE
     - [ ] 6.1.4.  KIND
     - [ ] 6.1.5.  XML 
   - [ ] 6.2.  Identification Properties 

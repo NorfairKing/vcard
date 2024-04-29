@@ -22,6 +22,65 @@ spec = do
     propertySpec @End
     propertyExampleSpec "END:VCARD" (End "VCARD")
 
+  describe "Source" $ do
+    genValidSpec @Source
+    propertySpec @Source
+
+    -- [RFC 2425 Section 6.1](https://datatracker.ietf.org/doc/html/rfc2425#section-6.1)
+    --
+    -- @
+    -- SOURCE;CONTEXT=LDAP:ldap://ldap.host/cn=Babs%20Jensen,%20o=Babsco,%20c=US
+    -- @
+    propertyParseExampleSpec
+      "SOURCE;CONTEXT=LDAP:ldap://ldap.host/cn=Babs%20Jensen,%20o=Babsco,%20c=US"
+      (mkSource "ldap://ldap.host/cn=Babs%20Jensen,%20o=Babsco,%20c=US")
+
+    -- [RFC 2425 Section 8.2](https://datatracker.ietf.org/doc/html/rfc2425#section-8.2)
+    --
+    -- @
+    -- source:ldap://cn=bjorn%20Jensen, o=university%20of%20Michigan, c=US
+    -- @
+    --
+    -- [See erratum 7912](https://www.rfc-editor.org/errata/eid7912)
+    propertyExampleSpec
+      "source:ldap://cn=bjorn%20Jensen,o=university%20of%20Michigan,c=US"
+      (mkSource "ldap://cn=bjorn%20Jensen,o=university%20of%20Michigan,c=US")
+
+    -- [RFC 2425 Section 8.3](https://datatracker.ietf.org/doc/html/rfc2425#section-8.3)
+    --
+    -- @
+    -- source:ldap://cn=Meister%20Berger,o=Universitaet%20Goerlitz,c=DE
+    -- @
+    propertyExampleSpec
+      "source:ldap://cn=Meister%20Berger,o=Universitaet%20Goerlitz,c=DE"
+      (mkSource "ldap://cn=Meister%20Berger,o=Universitaet%20Goerlitz,c=DE")
+
+    -- [RFC 2425 Section 8.4](https://datatracker.ietf.org/doc/html/rfc2425#section-8.4)
+    --
+    -- @
+    -- source:ldap://cn=Bjorn%20Jensen,o=University%20of%20Michigan,c=US
+    -- @
+    propertyExampleSpec
+      "source:ldap://cn=Bjorn%20Jensen,o=University%20of%20Michigan,c=US"
+      (mkSource "ldap://cn=Bjorn%20Jensen,o=University%20of%20Michigan,c=US")
+
+    -- [RFC 6350 Section 6.1.3](https://datatracker.ietf.org/doc/html/rfc6350#section-6.1.3)
+    --
+    -- @
+    -- Examples:
+    --
+    --   SOURCE:ldap://ldap.example.com/cn=Babs%20Jensen,%20o=Babsco,%20c=US
+    --
+    --   SOURCE:http://directory.example.com/addressbooks/jdoe/
+    --    Jean%20Dupont.vcf
+    -- @
+    propertyExampleSpec
+      "SOURCE:ldap://ldap.example.com/cn=Babs%20Jensen,%20o=Babsco,%20c=US"
+      (mkSource "ldap://ldap.example.com/cn=Babs%20Jensen,%20o=Babsco,%20c=US")
+    propertyExampleSpec
+      "SOURCE:http://directory.example.com/addressbooks/jdoe/Jean%20Dupont.vcf"
+      (mkSource "http://directory.example.com/addressbooks/jdoe/Jean%20Dupont.vcf")
+
   describe "FormattedName" $ do
     genValidSpec @FormattedName
     propertySpec @FormattedName
