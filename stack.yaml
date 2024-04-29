@@ -9,7 +9,7 @@ ghc-options:
 
 extra-deps:
 - github: NorfairKing/conformance
-  commit: 1bc2b33152eb2aa402342b64a5275508905585e8
+  commit: 0b7c896e97621416b54375ffa6393a1cdd36b9ae
   subdirs:
   - conformance
   - conformance-gen

@@ -17,6 +17,7 @@ import Data.GenValidity.Text ()
 import Data.GenValidity.Time ()
 import qualified Data.Text.Encoding as TE
 import Data.Void
+import Path
 import Test.Syd
 import Test.Syd.Validity
 import VCard
@@ -26,6 +27,7 @@ import VCard.Component.V4 as V4
 import VCard.ContentLine
 import VCard.ContentLine.Gen ()
 import VCard.Property.Gen ()
+import VCard.TestUtils
 
 instance GenValid V3.Card where
   genValid = genValidStructurallyWithoutExtraChecking
@@ -59,30 +61,52 @@ componentScenarioDir ::
   (Show a, Eq a, Validity a, IsComponent a) =>
   FilePath ->
   Spec
-componentScenarioDir dir = scenarioDir dir $ \tzFile ->
-  it "can parse this file as a component strictly and roundtrip it" $ do
-    let parseBS bs = runConformStrict $ do
-          textContents <- conformFromEither $ left TextDecodingError $ TE.decodeUtf8' bs
-          unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines textContents
-          contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-          conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $ parseComponentFromContentLines contentLines
+componentScenarioDir dir = do
+  let parse bs = do
+        textContents <- conformFromEither $ left TextDecodingError $ TE.decodeUtf8' bs
+        unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines textContents
+        contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
+        conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $ parseComponentFromContentLines contentLines
+  let parseStrictly = runConformStrict . parse
+  let parseLeniently = runConformLenient . parse
+  let renderBS =
+        TE.encodeUtf8
+          . renderUnfoldedLines
+          . map renderContentLineToUnfoldedLine
+          . DList.toList
+          . namedComponentB
+  vcardScenarioDirRecur (dir <> "/valid") $ \cardFile ->
+    it "can parse this file as a component strictly and roundtrip it" $ do
+      contents <- SB.readFile (fromRelFile cardFile)
+      case parseStrictly contents of
+        Left err -> expectationFailure $ renderError err
+        Right result -> do
+          shouldBeValid (result :: a)
+          let rendered = renderBS result
+          case parseStrictly rendered of
+            Left err -> expectationFailure $ renderError err
+            Right result' -> result' `shouldBe` result
 
-        renderBS =
-          TE.encodeUtf8
-            . renderUnfoldedLines
-            . map renderContentLineToUnfoldedLine
-            . DList.toList
-            . namedComponentB
+  vcardScenarioDirRecur (dir <> "/fixable") $ \cardFile -> do
+    it "fails to parse this file as a component strictly" $ do
+      contents <- SB.readFile (fromRelFile cardFile)
+      case parseStrictly contents of
+        Left _ -> pure ()
+        Right result -> expectationFailure $ unlines ["Expected to fail to parse, but got:", ppShow result]
 
-    contents <- SB.readFile tzFile
-    case parseBS contents of
-      Left err -> expectationFailure $ renderError err
-      Right result -> do
-        shouldBeValid (result :: a)
-        let rendered = renderBS result
-        case parseBS rendered of
-          Left err -> expectationFailure $ renderError err
-          Right result' -> result' `shouldBe` result
+    it "can parse this file as a component leniently and roundtrip it" $ do
+      contents <- SB.readFile (fromRelFile cardFile)
+      case parseLeniently contents of
+        Left err -> expectationFailure $ displayException err
+        Right (result, _) -> do
+          shouldBeValid (result :: a)
+          let rendered = renderBS result
+          case parseStrictly rendered of
+            Left err -> expectationFailure $ renderError err
+            Right result' -> do
+              result' `shouldBe` result
+              goldenFile <- replaceExtension "-fixed.vcf" cardFile
+              pure $ pureGoldenByteStringFile (fromRelFile goldenFile) rendered
 
 renderError :: Either VCardParseError (Notes VCardParseFixableError VCardParseWarning) -> String
 renderError = \case

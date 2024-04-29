@@ -1,0 +1,16 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Dawson;Frank
+FN:Frank Dawson
+ORG:Lotus Development Corporation
+ADR;TYPE=WORK,POSTAL,PARCEL:;;6544 Battleford Drive;
+ Raleigh;NC;27613-3502;USA
+TEL;TYPE=WORK,PREF:+1-617-693-8728
+TEL;TYPE=WORK,MSG:+1-919-676-9515
+TEL;TYPE=FAX:+1-617-693-8728
+EMAIL;TYPE=INTERNET,PREF:Frank_Dawson@Lotus.com
+EMAIL;TYPE=INTERNET:fdawson@earthlink.net
+CALADRURI;TYPE=PREF:MAILTO:Frank_Dawson@Lotus.com
+CALADRURI:MAILTO:fdawson@earthlink.net
+URL:http://home.earthlink.net/~fdawson
+END:VCARD

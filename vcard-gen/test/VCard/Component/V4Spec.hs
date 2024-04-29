@@ -16,6 +16,8 @@ spec = do
     genValidSpec @V4.Card
     componentSpec @V4.Card
 
+    componentScenarioDir @V4.Card "test_resources/v4"
+
   describe "renderCardV4" $
     it "roundtrips with parseCardV4" $
       forAllValid $ \vcard ->

@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Egen;Pat
+FN:Pat Egen
+ORG:Engan Consulting
+ADR;TYPE=WORK:;;803 Creek Overlook;Chattanooga;TN;37415;USA
+TEL;TYPE=WORK,VOICE:423.875.2652
+TEL;TYPE=WORK,FAX:423.875.2017
+EMAIL:pregen@egenconsulting.com
+URL:http://www.egenconsulting.com
+CALADRURI:MAILTO:pregen@egenconsulting.com
+END:VCARD

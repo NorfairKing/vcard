@@ -20,6 +20,10 @@ spec = do
   genValidSpec @AnyCard
   componentSpec @AnyCard
 
+  componentScenarioDir @AnyCard "test_resources/v3"
+  componentScenarioDir @AnyCard "test_resources/v4"
+  componentScenarioDir @AnyCard "test_resources/any"
+
   describe "vcardContentType" $
     it "is valid" $
       shouldBeValid vcardContentType

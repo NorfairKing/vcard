@@ -19,11 +19,11 @@
     "conformance": {
       "flake": false,
       "locked": {
-        "lastModified": 1701870134,
-        "narHash": "sha256-0qdsSpiboalB1vsOufbF5qclm9HHdeY88xLKXmzfn3g=",
+        "lastModified": 1714393833,
+        "narHash": "sha256-CqVOhwFsim+iAZecAXS80y1JaM84bWvslfocAQm0xfs=",
         "owner": "NorfairKing",
         "repo": "conformance",
-        "rev": "1bc2b33152eb2aa402342b64a5275508905585e8",
+        "rev": "0b7c896e97621416b54375ffa6393a1cdd36b9ae",
         "type": "github"
       },
       "original": {

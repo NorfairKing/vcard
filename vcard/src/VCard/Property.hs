@@ -72,6 +72,7 @@ where
 import Conformance
 import Control.DeepSeq
 import Control.Exception
+import Data.CaseInsensitive (CI)
 import Data.Maybe
 import Data.Proxy
 import Data.Text (Text)
@@ -207,7 +208,37 @@ propertyParamP clv =
       contentLineValueParams clv
 
 -- | BEGIN of a (VCARD) component
-newtype Begin = Begin {unBegin :: Text}
+--
+-- @
+-- Purpose:  To denote the beginning of a syntactic entity within a
+--    text/vcard content-type.
+--
+-- Value type:  text
+--
+-- Cardinality:  1
+--
+-- Special notes:  The content entity MUST begin with the BEGIN property
+--    with a value of "VCARD".  The value is case-insensitive.
+--
+--    The BEGIN property is used in conjunction with the END property to
+--    delimit an entity containing a related set of properties within a
+--    text/vcard content-type.  This construct can be used instead of
+--    including multiple vCards as body parts inside of a multipart/
+--    alternative MIME message.  It is provided for applications that
+--    wish to define content that can contain multiple entities within
+--    the same text/vcard content-type or to define content that can be
+--    identifiable outside of a MIME environment.
+--
+-- ABNF:
+--
+--   BEGIN-param = 0" "  ; no parameter allowed
+--   BEGIN-value = "VCARD"
+--
+-- Example:
+--
+--       BEGIN:VCARD
+-- @
+newtype Begin = Begin {unBegin :: CI Text}
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity Begin
@@ -220,7 +251,7 @@ instance IsProperty Begin where
   propertyB = propertyTypeB . unBegin
 
 -- | END of a (VCARD) component
-newtype End = End {unEnd :: Text}
+newtype End = End {unEnd :: CI Text}
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity End

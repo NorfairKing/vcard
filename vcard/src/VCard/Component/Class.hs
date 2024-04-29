@@ -44,6 +44,7 @@ where
 
 import Conformance
 import Control.Exception
+import Data.CaseInsensitive (CI)
 import Data.DList (DList (..))
 import qualified Data.DList as DList
 import Data.List.NonEmpty (NonEmpty (..))
@@ -62,15 +63,15 @@ import Data.Void
 import VCard.ContentLine
 import VCard.Property
 
-type ComponentName = Text
+type ComponentName = CI Text
 
 type Component = Map ContentLineName (NonEmpty ContentLineValue)
 
 data ComponentParseError
   = ComponentParseErrorMissingBegin
-  | ComponentParseErrorMissingEnd !Text
-  | ComponentParseErrorIncorrectEnd !Text !Text
-  | ComponentParseErrorComponentIncorrectName !Text !Text
+  | ComponentParseErrorMissingEnd !(CI Text)
+  | ComponentParseErrorIncorrectEnd !(CI Text) !(CI Text)
+  | ComponentParseErrorComponentIncorrectName !(CI Text) !(CI Text)
   | ComponentParseErrorMissingRequiredProperty !ContentLineName
   | ComponentParseErrorPropertyError !PropertyParseError
   | ComponentParseErrorUnknownVersion !Version
@@ -151,7 +152,7 @@ renderGeneralComponents =
     )
     . M.toList
 
-renderGeneralComponent :: Text -> Component -> DList ContentLine
+renderGeneralComponent :: CI Text -> Component -> DList ContentLine
 renderGeneralComponent name componentProperties =
   mconcat
     [ DList.singleton $ propertyContentLineB (Begin name),
@@ -182,7 +183,7 @@ parseGeneralComponents = go
 
 parseGeneralComponent ::
   [ContentLine] ->
-  ConformComponent (Text, Component)
+  ConformComponent (CI Text, Component)
 parseGeneralComponent =
   -- TODO check that there were no other lines after this.
   fmap fst . parseGeneralComponentHelper
@@ -203,7 +204,7 @@ parseGeneralComponentHelper = \case
     go name M.empty M.empty restCLs
   where
     go ::
-      Text ->
+      CI Text ->
       Map ContentLineName (NonEmpty ContentLineValue) ->
       Map ComponentName (NonEmpty Component) ->
       [ContentLine] ->
@@ -268,7 +269,7 @@ parseComponentFromContentLines cls = do
 -- >>> forAllValid $ \component -> parse componentP "" (DList.toList (componentB component)) == Right component
 class IsComponent component where
   -- | Name for this component
-  componentName :: Proxy component -> Text
+  componentName :: Proxy component -> CI Text
 
   -- | Parser for this component
   --
@@ -295,7 +296,7 @@ class IsComponent component where
 namedComponentP ::
   forall component.
   (IsComponent component) =>
-  Text ->
+  CI Text ->
   Component ->
   ConformComponent component
 namedComponentP actualName component =

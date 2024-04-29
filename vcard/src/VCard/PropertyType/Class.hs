@@ -30,6 +30,7 @@ where
 
 import Conformance
 import Control.Exception
+import Data.CaseInsensitive (CI)
 import qualified Data.CaseInsensitive as CI
 import Data.Int
 import Data.Proxy
@@ -145,6 +146,11 @@ instance IsPropertyType Text where
   propertyTypeValueType Proxy = TypeText
   propertyTypeP = pure . unEscapeText . contentLineValueRaw
   propertyTypeB = mkSimpleContentLineValue . escapeText
+
+instance IsPropertyType (CI Text) where
+  propertyTypeValueType Proxy = TypeText
+  propertyTypeP = fmap CI.mk . propertyTypeP
+  propertyTypeB = propertyTypeB . CI.original
 
 -- | Escape 'Text'
 --

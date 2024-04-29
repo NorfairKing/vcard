@@ -8,23 +8,39 @@ name:           vcard-gen
 version:        0.0.0.0
 build-type:     Simple
 extra-source-files:
+    test_resources/any/valid/double.vcf
+    test_resources/any/valid/empty.vcf
+    test_resources/any/valid/rfc2426-section-7.vcf
+    test_resources/any/valid/rfc2739-section-6.vcf
+    test_resources/any/valid/section-6.6.5.vcf
+    test_resources/any/valid/section-7.1.3.vcf
+    test_resources/any/valid/section-7.2.4.vcf
     test_resources/unfolded-lines.txt
-    test_resources/vcard/fixable/version-4/no-crlf.vcf
-    test_resources/vcard/valid/empty.vcf
-    test_resources/vcard/valid/version-3/rfc2426-section-7.vcf
-    test_resources/vcard/valid/version-3/rfc2739-section-2.3.vcf
-    test_resources/vcard/valid/version-3/rfc2739-section-6.vcf
-    test_resources/vcard/valid/version-3/rfc4470-section-4.vcf
-    test_resources/vcard/valid/version-4/double.vcf
-    test_resources/vcard/valid/version-4/example.vcf
-    test_resources/vcard/valid/version-4/section-6.1.4.vcf
-    test_resources/vcard/valid/version-4/section-6.6.5.vcf
-    test_resources/vcard/valid/version-4/section-7.1.3.vcf
-    test_resources/vcard/valid/version-4/section-7.2.1.vcf
-    test_resources/vcard/valid/version-4/section-7.2.3.vcf
-    test_resources/vcard/valid/version-4/section-7.2.4.vcf
-    test_resources/vcard/valid/version-4/section-7.2.5.vcf
-    test_resources/vcard/valid/version-4/section-8.vcf
+    test_resources/v3/fixable/rfc2426-section-7_2.vcf
+    test_resources/v3/fixable/rfc2739-section-6_1.vcf
+    test_resources/v3/fixable/rfc2739-section-6_2.vcf
+    test_resources/v3/valid/rfc2426-section-7_1.vcf
+    test_resources/v3/valid/rfc2739-section-2.3.vcf
+    test_resources/v3/valid/rfc2739-section-6_3.vcf
+    test_resources/v3/valid/rfc2739-section-6_4.vcf
+    test_resources/v3/valid/rfc4470-section-4.vcf
+    test_resources/v4/fixable/line-feed.vcf
+    test_resources/v4/fixable/no-crlf.vcf
+    test_resources/v4/valid/example.vcf
+    test_resources/v4/valid/section-6.1.4.vcf
+    test_resources/v4/valid/section-6.6.5_1.vcf
+    test_resources/v4/valid/section-6.6.5_2.vcf
+    test_resources/v4/valid/section-6.6.5_3.vcf
+    test_resources/v4/valid/section-6.6.5_4.vcf
+    test_resources/v4/valid/section-7.1.3_1.vcf
+    test_resources/v4/valid/section-7.1.3_2.vcf
+    test_resources/v4/valid/section-7.2.1.vcf
+    test_resources/v4/valid/section-7.2.3.vcf
+    test_resources/v4/valid/section-7.2.4_1.vcf
+    test_resources/v4/valid/section-7.2.4_2.vcf
+    test_resources/v4/valid/section-7.2.4_3.vcf
+    test_resources/v4/valid/section-7.2.5.vcf
+    test_resources/v4/valid/section-8.vcf
 
 library
   exposed-modules:
