@@ -1,0 +1,6 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Alec Dun
+N:Dun;Alec;;;
+EMAIL:user@host1.com
+END:VCARD
