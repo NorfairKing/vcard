@@ -13,12 +13,14 @@ extra-source-files:
     test_resources/v3/fixable/rfc2739-section-6_1.vcf-fixed
     test_resources/v3/fixable/rfc2739-section-6_2.vcf
     test_resources/v3/fixable/rfc2739-section-6_2.vcf-fixed
+    test_resources/v3/fixable/rfc2739-section-6_3.vcf
+    test_resources/v3/fixable/rfc2739-section-6_3.vcf-fixed
+    test_resources/v3/fixable/rfc2739-section-6_4.vcf
+    test_resources/v3/fixable/rfc2739-section-6_4.vcf-fixed
     test_resources/v3/valid/rfc2426-section-7_1.vcf
     test_resources/v3/valid/rfc2426-section-7_2.vcf
     test_resources/v3/valid/rfc2739-section-2.3.vcf
-    test_resources/v3/valid/rfc2739-section-6_3.vcf
-    test_resources/v3/valid/rfc2739-section-6_4.vcf
-    test_resources/v3/valid/rfc4470-section-4.vcf
+    test_resources/v3/valid/rfc4770-section-4.vcf
     test_resources/v4/fixable/line-feed.vcf
     test_resources/v4/fixable/line-feed.vcf-fixed
     test_resources/v4/fixable/no-crlf.vcf
