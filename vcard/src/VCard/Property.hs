@@ -64,6 +64,8 @@ module VCard.Property
 
     -- **** Version
     Version (..),
+    version3,
+    version4,
   )
 where
 
@@ -710,3 +712,9 @@ instance IsProperty Version where
   propertyName Proxy = "VERSION"
   propertyP = wrapPropertyTypeP Version
   propertyB = propertyTypeB . unVersion
+
+version3 :: Version
+version3 = Version "3.0"
+
+version4 :: Version
+version4 = Version "4.0"

@@ -73,6 +73,8 @@ data ComponentParseError
   | ComponentParseErrorComponentIncorrectName !Text !Text
   | ComponentParseErrorMissingRequiredProperty !ContentLineName
   | ComponentParseErrorPropertyError !PropertyParseError
+  | ComponentParseErrorUnknownVersion !Version
+  | ComponentParseErrorVersionMismatch !Version !Version
   deriving (Show, Eq)
 
 instance Exception ComponentParseError where
@@ -101,6 +103,10 @@ instance Exception ComponentParseError where
           show (renderContentLineName name)
         ]
     ComponentParseErrorPropertyError pe -> displayException pe
+    ComponentParseErrorUnknownVersion actual ->
+      unwords ["Unknown version:", show actual]
+    ComponentParseErrorVersionMismatch actual expected ->
+      unwords ["Version mismatch. Actual:", show actual, "Expected:", show expected]
 
 data ComponentParseFixableError
   = ComponentParseFixableErrorPropertyFixableError !PropertyParseFixableError

@@ -7,7 +7,9 @@ module VCard.Component.V3
   )
 where
 
+import Conformance
 import Control.DeepSeq
+import Control.Monad
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy
 import Data.Validity
@@ -19,7 +21,6 @@ data Card = Card
   { cardSources :: ![Source],
     cardFormattedNames :: !(NonEmpty FormattedName),
     cardName :: !Name,
-    cardVersion :: !Version,
     cardNicknames :: ![Nickname],
     cardEmails :: ![Email]
   }
@@ -33,6 +34,7 @@ instance IsComponent Card where
   componentName Proxy = "VCARD"
   componentP componentProperties = do
     cardVersion <- requiredPropertyP componentProperties
+    when (cardVersion /= version3) $ unfixableError $ ComponentParseErrorVersionMismatch cardVersion version3
 
     cardSources <- listOfPropertiesP componentProperties
     cardFormattedNames <- nonemptyListOfPropertiesP componentProperties
@@ -54,7 +56,7 @@ instance IsComponent Card where
         -- @
         --
         -- For easy distinguishing between 2.1 and (3 and 4), we'll put it first here as well.
-        requiredPropertyB cardVersion,
+        requiredPropertyB (Version "3.0"),
         listOfPropertiesB cardSources,
         nonemptyListOfPropertiesB cardFormattedNames,
         requiredPropertyB cardName,

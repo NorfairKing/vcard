@@ -7,7 +7,9 @@ module VCard.Component.V4
   )
 where
 
+import Conformance
 import Control.DeepSeq
+import Control.Monad
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Proxy
 import Data.Validity
@@ -19,7 +21,6 @@ data Card = Card
   { cardSources :: ![Source],
     cardFormattedNames :: !(NonEmpty FormattedName),
     cardName :: !(Maybe Name),
-    cardVersion :: !Version,
     cardNicknames :: ![Nickname],
     cardGender :: !(Maybe Gender),
     cardEmails :: ![Email]
@@ -34,6 +35,7 @@ instance IsComponent Card where
   componentName Proxy = "VCARD"
   componentP componentProperties = do
     cardVersion <- requiredPropertyP componentProperties
+    when (cardVersion /= version4) $ unfixableError $ ComponentParseErrorVersionMismatch cardVersion version4
 
     cardSources <- listOfPropertiesP componentProperties
     cardFormattedNames <- nonemptyListOfPropertiesP componentProperties
@@ -53,7 +55,7 @@ instance IsComponent Card where
         --    that earlier versions of vCard allowed this property to be placed
         --    anywhere in the vCard object, or even to be absent.
         -- @
-        requiredPropertyB cardVersion,
+        requiredPropertyB version4,
         listOfPropertiesB cardSources,
         nonemptyListOfPropertiesB cardFormattedNames,
         optionalPropertyB cardName,

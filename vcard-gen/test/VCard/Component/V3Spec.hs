@@ -16,8 +16,8 @@ spec = do
     genValidSpec @V3.Card
     componentSpec @V3.Card
 
-  describe "renderCard" $
-    it "roundtrips with parseCard" $
+  describe "renderCardV3" $
+    it "roundtrips with parseCardV3" $
       forAllValid $ \vcard ->
         let rendered = renderCardV3 vcard
             ctx = unlines ["Rendered VCARD:", T.unpack rendered]

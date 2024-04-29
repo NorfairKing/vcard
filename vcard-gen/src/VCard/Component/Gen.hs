@@ -35,6 +35,10 @@ instance GenValid V4.Card where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
+instance GenValid AnyCard where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 componentSpec ::
   forall a.
   (Show a, Eq a, GenValid a, IsComponent a) =>

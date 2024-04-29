@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -6,6 +7,7 @@
 module VCard
   ( -- * VCard
     VCard,
+    AnyCard (..),
     V4.Card (..),
     vcardContentType,
     isVCardExtension,
@@ -13,14 +15,14 @@ module VCard
     -- ** Rendering
     renderVCardByteString,
     renderVCard,
-    renderCard,
+    renderAnyCard,
     renderCardV4,
     renderCardV3,
 
     -- ** Parsing
     parseVCardByteString,
     parseVCard,
-    parseCard,
+    parseAnyCard,
     parseCardV4,
     parseCardV3,
 
@@ -45,6 +47,7 @@ where
 
 import Conformance
 import Control.Arrow (left)
+import Control.DeepSeq
 import Control.Exception
 import Control.Monad
 import Data.ByteString (ByteString)
@@ -52,14 +55,18 @@ import Data.DList (DList)
 import qualified Data.DList as DList
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
+import Data.Proxy
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
+import Data.Validity
 import Data.Void
+import GHC.Generics (Generic)
 import VCard.Component
 import VCard.Component.V3 as V3
 import VCard.Component.V4 as V4
 import VCard.ContentLine
+import VCard.Property
 import VCard.UnfoldedLine
 
 -- | MIME Content type
@@ -90,7 +97,28 @@ vcardContentType = "text/vcard; charset=utf-8"
 isVCardExtension :: String -> Bool
 isVCardExtension = (`elem` [".vcf", ".vcard"])
 
-type VCard = [V4.Card]
+type VCard = [AnyCard]
+
+data AnyCard
+  = CardV4 !V4.Card
+  | CardV3 !V3.Card
+  deriving (Show, Eq, Generic)
+
+instance Validity AnyCard
+
+instance NFData AnyCard
+
+instance IsComponent AnyCard where
+  componentName Proxy = "VCARD"
+  componentP componentProperties = do
+    version <- requiredPropertyP componentProperties
+    case unVersion version of
+      "4.0" -> CardV4 <$> componentP componentProperties
+      "3.0" -> CardV3 <$> componentP componentProperties
+      _ -> unfixableError $ ComponentParseErrorUnknownVersion version
+  componentB = \case
+    CardV4 c -> componentB c
+    CardV3 c -> componentB c
 
 renderVCardByteString :: VCard -> ByteString
 renderVCardByteString = TE.encodeUtf8 . renderVCard
@@ -105,8 +133,10 @@ renderVCard =
 vcardB :: VCard -> DList ContentLine
 vcardB = foldMap namedComponentB
 
-renderCard :: V4.Card -> Text
-renderCard = renderCardV4
+renderAnyCard :: AnyCard -> Text
+renderAnyCard = \case
+  CardV4 c -> renderCardV4 c
+  CardV3 c -> renderCardV3 c
 
 renderCardV3 :: V3.Card -> Text
 renderCardV3 = renderComponentText
@@ -141,10 +171,8 @@ parseVCard contents = do
         $ mapM (namedComponentP name)
         $ NE.toList components
 
-parseCard ::
-  Text ->
-  ConformVCard V4.Card
-parseCard = parseCardV4
+parseAnyCard :: Text -> ConformVCard AnyCard
+parseAnyCard = parseComponentFromText
 
 parseCardV4 :: Text -> ConformVCard V4.Card
 parseCardV4 = parseComponentFromText
