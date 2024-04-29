@@ -66,6 +66,10 @@ instance GenValid Gender where
       Nothing -> oneof [pure Nothing, Just <$> genNonemptyText]
     pure Gender {..}
 
+instance GenValid Email where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 instance GenValid Version where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering

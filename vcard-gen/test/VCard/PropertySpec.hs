@@ -407,6 +407,71 @@ spec = do
           }
       )
 
+  describe "Email" $ do
+    genValidSpec @Email
+    propertySpec @Email
+    -- [RFC2425 Section 8.1](https://datatracker.ietf.org/doc/html/rfc2425#section-8.1)
+    --
+    -- @
+    -- email:babs@umich.edu
+    -- @
+    propertyExampleSpec "email:babs@umich.edu" (mkEmail "babs@umich.edu")
+
+    -- [RFC2425 Section 8.4](https://datatracker.ietf.org/doc/html/rfc2425#section-8.4)
+    --
+    -- @
+    -- email:bjorn@umich.edu
+    -- @
+    propertyExampleSpec "email:bjorn@umich.edu" (mkEmail "bjorn@umich.edu")
+
+    -- [RFC2426 Section 3.3.2](https://datatracker.ietf.org/doc/html/rfc2426#section-3.3.2)
+    --
+    -- @
+    -- Type example:
+    --
+    --      EMAIL;TYPE=internet:jqpublic@xyz.dom1.com
+    --
+    --      EMAIL;TYPE=internet:jdoe@isp.net
+    --
+    --      EMAIL;TYPE=internet,pref:jane_doe@abc.com
+    -- @
+    propertyParseExampleSpec "EMAIL;TYPE=internet:jqpublic@xyz.dom1.com" (mkEmail "jqpublic@xyz.dom1.com")
+    propertyRenderExampleSpec "EMAIL:jqpublic@xyz.dom1.com" (mkEmail "jqpublic@xyz.dom1.com")
+    propertyParseExampleSpec "EMAIL;TYPE=internet:jdoe@isp.net" (mkEmail "jdoe@isp.net")
+    propertyRenderExampleSpec "EMAIL:jdoe@isp.net" (mkEmail "jdoe@isp.net")
+    propertyParseExampleSpec "EMAIL;TYPE=internet,pref:jane_doe@abc.com" (mkEmail "jane_doe@abc.com")
+    propertyRenderExampleSpec "EMAIL:jane_doe@abc.com" (mkEmail "jane_doe@abc.com")
+
+    -- [RFC2426 Section 7](https://datatracker.ietf.org/doc/html/rfc2426#section-7)
+    --
+    -- @
+    -- EMAIL;TYPE=INTERNET,PREF:Frank_Dawson@Lotus.com
+    -- EMAIL;TYPE=INTERNET:fdawson@earthlink.net
+    -- @
+    propertyParseExampleSpec "EMAIL;TYPE=INTERNET,PREF:Frank_Dawson@Lotus.com" (mkEmail "Frank_Dawson@Lotus.com")
+    propertyRenderExampleSpec "EMAIL:Frank_Dawson@Lotus.com" (mkEmail "Frank_Dawson@Lotus.com")
+    propertyParseExampleSpec "EMAIL;TYPE=INTERNET:fdawson@earthlink.net" (mkEmail "fdawson@earthlink.net")
+    propertyRenderExampleSpec "EMAIL:fdawson@earthlink.net" (mkEmail "fdawson@earthlink.net")
+    -- @
+    -- EMAIL;TYPE=INTERNET:howes@netscape.com
+    -- @
+    propertyParseExampleSpec "EMAIL;TYPE=INTERNET:howes@netscape.com" (mkEmail "howes@netscape.com")
+    propertyRenderExampleSpec "EMAIL:howes@netscape.com" (mkEmail "howes@netscape.com")
+
+    -- [RFC6350 Section 6.4.2](https://datatracker.ietf.org/doc/html/rfc6350#section-6.4.2)
+    --
+    -- @
+    -- Example:
+    --
+    --         EMAIL;TYPE=work:jqpublic@xyz.example.com
+    --
+    --         EMAIL;PREF=1:jane_doe@example.com
+    -- @
+    propertyParseExampleSpec "EMAIL;TYPE=work:jqpublic@xyz.example.com" (mkEmail "jqpublic@xyz.example.com")
+    propertyRenderExampleSpec "EMAIL:jqpublic@xyz.example.com" (mkEmail "jqpublic@xyz.example.com")
+    propertyParseExampleSpec "EMAIL;PREF=1:jane_doe@example.com" (mkEmail "jane_doe@example.com")
+    propertyRenderExampleSpec "EMAIL:jane_doe@example.com" (mkEmail "jane_doe@example.com")
+
   describe "Version" $ do
     genValidSpec @Version
     propertySpec @Version

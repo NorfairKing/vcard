@@ -56,6 +56,10 @@ module VCard.Property
     parseSex,
     renderSex,
 
+    -- *** Communications properties
+    Email (..),
+    mkEmail,
+
     -- *** Explanatory properties
 
     -- **** Version
@@ -616,7 +620,59 @@ renderSex = \case
   SexNone -> "N"
   SexUnknown -> "U"
 
--- [Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
+-- | Email
+--
+-- [RFC6350 Section 6.4.2](https://datatracker.ietf.org/doc/html/rfc6350#section-6.4.2)
+--
+-- @
+-- Purpose:  To specify the electronic mail address for communication
+--    with the object the vCard represents.
+--
+-- Value type:  A single text value.
+--
+-- Cardinality:  *
+--
+-- Special notes:  The property can include tye "PREF" parameter to
+--    indicate a preferred-use email address when more than one is
+--    specified.
+--
+--    Even though the value is free-form UTF-8 text, it is likely to be
+--    interpreted by a Mail User Agent (MUA) as an "addr-spec", as
+--    defined in [RFC5322], Section 3.4.1.  Readers should also be aware
+--    of the current work toward internationalized email addresses
+--    [RFC5335bis].
+--
+-- ABNF:
+--
+--   EMAIL-param = "VALUE=text" / pid-param / pref-param / type-param
+--               / altid-param / any-param
+--   EMAIL-value = text
+--
+-- Example:
+--
+--         EMAIL;TYPE=work:jqpublic@xyz.example.com
+--
+--         EMAIL;PREF=1:jane_doe@example.com
+-- @
+data Email = Email
+  { emailValue :: !Text
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity Email
+
+instance NFData Email
+
+instance IsProperty Email where
+  propertyName Proxy = "EMAIL"
+  propertyP = wrapPropertyTypeP Email
+  propertyB = propertyTypeB . emailValue
+
+mkEmail :: Text -> Email
+mkEmail emailValue =
+  Email {..}
+
+-- [RFC6350 Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
 --
 -- @
 -- Purpose:  To specify the version of the vCard specification used to
