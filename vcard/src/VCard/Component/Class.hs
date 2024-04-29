@@ -331,19 +331,17 @@ requiredPropertyP m = case M.lookup name m of
   where
     name = propertyName (Proxy :: Proxy a)
 
-requiredPropertyB :: (IsProperty property) => property -> Map ContentLineName (NonEmpty ContentLineValue)
-requiredPropertyB property =
-  let cl = propertyContentLineB property
-   in M.singleton (contentLineName cl) (contentLineValue cl :| [])
+requiredPropertyB :: (IsProperty property) => property -> DList ContentLine
+requiredPropertyB = DList.singleton . propertyContentLineB
 
-optionalPropertyB :: (IsProperty property) => Maybe property -> Map ContentLineName (NonEmpty ContentLineValue)
-optionalPropertyB = maybe M.empty requiredPropertyB
+optionalPropertyB :: (IsProperty property) => Maybe property -> DList ContentLine
+optionalPropertyB = maybe DList.empty requiredPropertyB
 
 optionalPropertyWithDefaultB ::
   (Eq property, IsProperty property) =>
   property ->
   property ->
-  Map ContentLineName (NonEmpty ContentLineValue)
+  DList ContentLine
 optionalPropertyWithDefaultB defaultValue value =
   if value == defaultValue
     then mempty
@@ -389,8 +387,8 @@ optionalPropertyWithDefaultP defaultValue m = fromMaybe defaultValue <$> optiona
 listOfPropertiesB ::
   (IsProperty property) =>
   [property] ->
-  Map ContentLineName (NonEmpty ContentLineValue)
-listOfPropertiesB = M.unionsWith (<>) . map requiredPropertyB
+  DList ContentLine
+listOfPropertiesB = foldMap requiredPropertyB
 
 listOfPropertiesP ::
   forall property.
@@ -413,7 +411,7 @@ listOfPropertiesP m = do
 nonemptyListOfPropertiesB ::
   (IsProperty property) =>
   NonEmpty property ->
-  Map ContentLineName (NonEmpty ContentLineValue)
+  DList ContentLine
 nonemptyListOfPropertiesB = listOfPropertiesB . NE.toList
 
 nonemptyListOfPropertiesP ::
@@ -439,7 +437,7 @@ nonemptyListOfPropertiesP m =
 setOfPropertiesB ::
   (IsProperty property) =>
   Set property ->
-  Map ContentLineName (NonEmpty ContentLineValue)
+  DList ContentLine
 setOfPropertiesB = listOfPropertiesB . S.toList
 
 setOfPropertiesP ::

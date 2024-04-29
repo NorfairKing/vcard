@@ -8,9 +8,7 @@ module VCard.Component.V4
 where
 
 import Control.DeepSeq
-import qualified Data.DList as DList
 import Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.List.NonEmpty as NE
 import Data.Proxy
 import Data.Validity
 import GHC.Generics (Generic)
@@ -55,11 +53,11 @@ instance IsComponent Card where
         --    that earlier versions of vCard allowed this property to be placed
         --    anywhere in the vCard object, or even to be absent.
         -- @
-        DList.singleton $ propertyContentLineB cardVersion,
-        DList.fromList $ map propertyContentLineB cardSources,
-        DList.fromList $ map propertyContentLineB $ NE.toList cardFormattedNames,
-        maybe mempty (DList.singleton . propertyContentLineB) cardName,
-        DList.fromList $ map propertyContentLineB cardNicknames,
-        maybe mempty (DList.singleton . propertyContentLineB) cardGender,
-        DList.fromList $ map propertyContentLineB cardEmails
+        requiredPropertyB cardVersion,
+        listOfPropertiesB cardSources,
+        nonemptyListOfPropertiesB cardFormattedNames,
+        optionalPropertyB cardName,
+        listOfPropertiesB cardNicknames,
+        optionalPropertyB cardGender,
+        listOfPropertiesB cardEmails
       ]

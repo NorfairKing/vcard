@@ -8,9 +8,7 @@ module VCard.Component.V3
 where
 
 import Control.DeepSeq
-import qualified Data.DList as DList
 import Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.List.NonEmpty as NE
 import Data.Proxy
 import Data.Validity
 import GHC.Generics (Generic)
@@ -56,10 +54,10 @@ instance IsComponent Card where
         -- @
         --
         -- For easy distinguishing between 2.1 and (3 and 4), we'll put it first here as well.
-        DList.singleton $ propertyContentLineB cardVersion,
-        DList.fromList $ map propertyContentLineB cardSources,
-        DList.fromList $ map propertyContentLineB $ NE.toList cardFormattedNames,
-        DList.singleton $ propertyContentLineB cardName,
-        DList.fromList $ map propertyContentLineB cardNicknames,
-        DList.fromList $ map propertyContentLineB cardEmails
+        requiredPropertyB cardVersion,
+        listOfPropertiesB cardSources,
+        nonemptyListOfPropertiesB cardFormattedNames,
+        requiredPropertyB cardName,
+        listOfPropertiesB cardNicknames,
+        listOfPropertiesB cardEmails
       ]
