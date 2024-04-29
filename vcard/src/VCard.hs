@@ -6,7 +6,7 @@
 module VCard
   ( -- * VCard
     VCard,
-    Card (..),
+    V4.Card (..),
     vcardContentType,
     isVCardExtension,
 
@@ -14,11 +14,15 @@ module VCard
     renderVCardByteString,
     renderVCard,
     renderCard,
+    renderCardV4,
+    renderCardV3,
 
     -- ** Parsing
     parseVCardByteString,
     parseVCard,
     parseCard,
+    parseCardV4,
+    parseCardV3,
 
     -- *** Errors
     VCardParseError (..),
@@ -53,6 +57,8 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import Data.Void
 import VCard.Component
+import VCard.Component.V3 as V3
+import VCard.Component.V4 as V4
 import VCard.ContentLine
 import VCard.UnfoldedLine
 
@@ -84,7 +90,7 @@ vcardContentType = "text/vcard; charset=utf-8"
 isVCardExtension :: String -> Bool
 isVCardExtension = (`elem` [".vcf", ".vcard"])
 
-type VCard = [Card]
+type VCard = [V4.Card]
 
 renderVCardByteString :: VCard -> ByteString
 renderVCardByteString = TE.encodeUtf8 . renderVCard
@@ -99,12 +105,14 @@ renderVCard =
 vcardB :: VCard -> DList ContentLine
 vcardB = foldMap namedComponentB
 
-renderCard :: Card -> Text
-renderCard =
-  renderUnfoldedLines
-    . map renderContentLineToUnfoldedLine
-    . DList.toList
-    . namedComponentB
+renderCard :: V4.Card -> Text
+renderCard = renderCardV4
+
+renderCardV3 :: V3.Card -> Text
+renderCardV3 = renderComponentText
+
+renderCardV4 :: V4.Card -> Text
+renderCardV4 = renderComponentText
 
 parseVCardByteString ::
   ByteString ->
@@ -135,18 +143,14 @@ parseVCard contents = do
 
 parseCard ::
   Text ->
-  ConformVCard Card
-parseCard contents = do
-  unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
-  contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-  (name, component) <-
-    conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $
-      parseGeneralComponent contentLines
-  conformMapAll
-    ComponentParseError
-    ComponentParseFixableError
-    ComponentParseWarning
-    $ namedComponentP name component
+  ConformVCard V4.Card
+parseCard = parseCardV4
+
+parseCardV4 :: Text -> ConformVCard V4.Card
+parseCardV4 = parseComponentFromText
+
+parseCardV3 :: Text -> ConformVCard V3.Card
+parseCardV3 = parseComponentFromText
 
 data VCardParseError
   = TextDecodingError !TE.UnicodeException

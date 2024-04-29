@@ -47,7 +47,7 @@ componentSpec = do
   it "roundtrips through Text" $
     forAllValid $ \a -> do
       let renderedText = renderComponentText (a :: a)
-      parsed <- shouldConform $ parseComponentFromText renderedText
+      parsed <- shouldConformStrict $ parseComponentFromText renderedText
       parsed `shouldBe` a
 
 componentScenarioDir ::

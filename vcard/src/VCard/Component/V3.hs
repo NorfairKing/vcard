@@ -16,8 +16,11 @@ import VCard.Component.Class
 import VCard.Property
 
 data Card = Card
-  { cardVersion :: !Version,
-    cardFormattedName :: !FormattedName
+  { cardSource :: !(Maybe Source),
+    cardFormattedName :: !FormattedName,
+    cardName :: !Name,
+    cardVersion :: !Version,
+    cardNickname :: !(Maybe Nickname)
   }
   deriving (Show, Eq, Generic)
 
@@ -28,8 +31,11 @@ instance NFData Card
 instance IsComponent Card where
   componentName Proxy = "VCARD"
   componentP componentProperties = do
-    cardVersion <- requiredPropertyP componentProperties
+    cardSource <- optionalPropertyP componentProperties
     cardFormattedName <- requiredPropertyP componentProperties
+    cardName <- requiredPropertyP componentProperties
+    cardVersion <- requiredPropertyP componentProperties
+    cardNickname <- optionalPropertyP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -46,5 +52,8 @@ instance IsComponent Card where
         --
         -- For easy distinguishing between 3 and 4, we'll put it first here as well.
         DList.singleton $ propertyContentLineB cardVersion,
-        DList.singleton $ propertyContentLineB cardFormattedName
+        maybe mempty (DList.singleton . propertyContentLineB) cardSource,
+        DList.singleton $ propertyContentLineB cardFormattedName,
+        DList.singleton $ propertyContentLineB cardName,
+        maybe mempty (DList.singleton . propertyContentLineB) cardNickname
       ]
