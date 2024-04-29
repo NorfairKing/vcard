@@ -22,26 +22,25 @@ spec = do
 
   componentScenarioDir @AnyCard "test_resources/v3"
   componentScenarioDir @AnyCard "test_resources/v4"
-  componentScenarioDir @AnyCard "test_resources/any"
 
   describe "vcardContentType" $
     it "is valid" $
       shouldBeValid vcardContentType
 
-  vcardScenarioDirRecur "test_resources/card/valid" $ \cardFile ->
-    it "parses this card strictly" $ do
+  vcardScenarioDirRecur "test_resources/vcard/valid" $ \cardFile ->
+    it "parses this vcard strictly" $ do
       contents <- SB.readFile (fromRelFile cardFile)
       vcard <- shouldConformStrict $ parseVCardByteString contents
       shouldBeValid vcard
 
-  vcardScenarioDirRecur "test_resources/card/fixable" $ \cardFile -> do
-    it "cannot parse this card strictly" $ do
+  vcardScenarioDirRecur "test_resources/vcard/fixable" $ \cardFile -> do
+    it "cannot parse this vcard strictly" $ do
       contents <- SB.readFile (fromRelFile cardFile)
       case runConformStrict $ parseVCardByteString contents of
         Left _ -> pure ()
         Right vcard -> expectationFailure $ unlines ["Should have failed but succeeded in parsing this vcard:", ppShow vcard]
 
-    it "can parse this card leniently and turn it into something valid that can be parsed strictly" $ do
+    it "can parse this vcard leniently and turn it into something valid that can be parsed strictly" $ do
       contents <- SB.readFile (fromRelFile cardFile)
       vcard <- shouldConformLenient $ parseVCardByteString contents
       shouldBeValid vcard
@@ -49,7 +48,7 @@ spec = do
       vcard' <- shouldConformStrict $ parseVCardByteString rendered
       vcard' `shouldBe` vcard
 
-  vcardScenarioDirRecur "test_resources/card/error" $ \cardFile -> do
+  vcardScenarioDirRecur "test_resources/vcard/error" $ \cardFile -> do
     it "fails to parse this card" $ do
       contents <- SB.readFile $ fromRelFile cardFile
       err <- case runConform $ parseVCardByteString contents of

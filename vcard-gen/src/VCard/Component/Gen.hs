@@ -16,7 +16,6 @@ import Data.GenValidity.CaseInsensitive ()
 import Data.GenValidity.Text ()
 import Data.GenValidity.Time ()
 import qualified Data.Text.Encoding as TE
-import Data.Void
 import Path
 import Test.Syd
 import Test.Syd.Validity
@@ -64,9 +63,7 @@ componentScenarioDir ::
 componentScenarioDir dir = do
   let parse bs = do
         textContents <- conformFromEither $ left TextDecodingError $ TE.decodeUtf8' bs
-        unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines textContents
-        contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-        conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $ parseComponentFromContentLines contentLines
+        parseComponentFromText textContents
   let parseStrictly = runConformStrict . parse
   let parseLeniently = runConformLenient . parse
   let renderBS =
@@ -105,7 +102,7 @@ componentScenarioDir dir = do
             Left err -> expectationFailure $ renderError err
             Right result' -> do
               result' `shouldBe` result
-              goldenFile <- replaceExtension "-fixed.vcf" cardFile
+              goldenFile <- replaceExtension ".vcf-fixed" cardFile
               pure $ pureGoldenByteStringFile (fromRelFile goldenFile) rendered
 
 renderError :: Either VCardParseError (Notes VCardParseFixableError VCardParseWarning) -> String

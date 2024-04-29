@@ -398,6 +398,8 @@ mkFormattedName formattedNameValue =
 --
 --           N:Stevenson;John;Philip,Paul;Dr.;Jr.,M.D.,A.C.P.
 -- @
+-- TODO in version 3, names didn't HAVE to have 5 component.
+-- In that case we should not throw a fixable error at all.
 data Name = Name
   { nameSurnames :: [Text],
     nameGivenNames :: [Text],

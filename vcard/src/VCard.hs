@@ -34,6 +34,7 @@ module VCard
     -- *** Helpers
     renderComponentText,
     parseComponentFromText,
+    withLineEndingsFixableError,
 
     -- *** Running a 'Conform'
     runConformStrict,
@@ -51,6 +52,7 @@ import Control.DeepSeq
 import Control.Exception
 import Control.Monad
 import Data.ByteString (ByteString)
+import qualified Data.CaseInsensitive as CI
 import Data.DList (DList)
 import qualified Data.DList as DList
 import qualified Data.List.NonEmpty as NE
@@ -156,41 +158,42 @@ parseVCardByteString contents = do
 parseVCard ::
   Text ->
   ConformVCard VCard
-parseVCard rawContents = do
-  let parseContents contents = do
-        unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
-        contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
-        componentMap <-
-          conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $
-            parseGeneralComponents contentLines
-        if M.null componentMap
-          then pure ([] :: VCard)
-          else fmap concat $ forM (M.toList componentMap) $ \(name, components) ->
-            conformMapAll
-              ComponentParseError
-              ComponentParseFixableError
-              ComponentParseWarning
-              $ mapM (namedComponentP name)
-              $ NE.toList components
+parseVCard = withLineEndingsFixableError $ \contents -> do
+  unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
+  contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
+  componentMap <-
+    conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $
+      parseGeneralComponents contentLines
+  if M.null componentMap
+    then pure ([] :: VCard)
+    else fmap concat $ forM (M.toList componentMap) $ \(name, components) ->
+      conformMapAll
+        ComponentParseError
+        ComponentParseFixableError
+        ComponentParseWarning
+        $ mapM (namedComponentP name)
+        $ NE.toList components
 
-  parseContents rawContents
-
--- -- Sometimes implementations use LF instead of CRLF line endings, see
--- -- https://github.com/pimutils/vdirsyncer/issues/1128
--- -- In such a case we will get a ComponentParseErrorMissingEnd error with the entire file in the name.
--- -- We match on this case and try to parse again with line endings "fixed".
--- errOrVCard <- tryConformDetailed (parseContents rawContents)
--- let fixedContents = T.replace "\n" "\r\n" rawContents
--- case errOrVCard of
---   Left hr -> case hr of
---     HaltedBecauseOfUnfixableError (ComponentParseError (ComponentParseErrorMissingEnd name))
---       | T.isSuffixOf "END:VCARD" name -> parseContents fixedContents
---     HaltedBecauseOfUnfixableError ue -> unfixableError ue
---     HaltedBecauseOfStrictness fe -> do
---       emitFixableError fe
---       parseContents fixedContents -- Won't get here because we use the same predicate
---   Right vcard -> do
---     pure vcard
+withLineEndingsFixableError :: (Text -> ConformVCard component) -> Text -> ConformVCard component
+withLineEndingsFixableError parseContents rawContents = do
+  -- Sometimes implementations use LF instead of CRLF line endings, see
+  -- https://github.com/pimutils/vdirsyncer/issues/1128
+  -- In such a case we will get a ComponentParseErrorMissingEnd error with the entire file in the name.
+  -- We match on this case and try to parse again with line endings "fixed".
+  errOrVCard <- tryConformDetailed (parseContents rawContents)
+  let fixedContents = T.replace "\n" "\r\n" rawContents
+  case errOrVCard of
+    Left hr -> case hr of
+      HaltedBecauseOfUnfixableError (ComponentParseError (ComponentParseErrorMissingEnd name))
+        | T.isSuffixOf "\nEND:VCARD" (T.toUpper (CI.original name)) -> do
+            -- TODO throw fixable error
+            parseContents fixedContents
+      HaltedBecauseOfUnfixableError ue -> unfixableError ue
+      HaltedBecauseOfStrictness fe -> do
+        emitFixableError fe
+        parseContents fixedContents -- Won't get here because we use the same predicate
+    Right vcard -> do
+      pure vcard
 
 parseAnyCard :: Text -> ConformVCard AnyCard
 parseAnyCard = parseComponentFromText
@@ -256,7 +259,7 @@ parseComponentFromText ::
   (IsComponent component) =>
   Text ->
   ConformVCard component
-parseComponentFromText contents = do
+parseComponentFromText = withLineEndingsFixableError $ \contents -> do
   unfoldedLines <- conformMapAll UnfoldingError UnfoldingFixableError absurd $ parseUnfoldedLines contents
   contentLines <- conformMapAll ContentLineParseError absurd absurd $ conformFromEither $ mapM parseContentLineFromUnfoldedLine unfoldedLines
   conformMapAll ComponentParseError ComponentParseFixableError ComponentParseWarning $ parseComponentFromContentLines contentLines
