@@ -86,7 +86,7 @@ TODO
     - [ ] 6.3.1.  ADR 
   - [ ] 6.4.  Communications Properties 
     - [ ] 6.4.1.  TEL 
-    - [ ] 6.4.2.  EMAIL 
+    - [X] 6.4.2.  EMAIL 
     - [ ] 6.4.3.  IMPP
     - [ ] 6.4.4.  LANG
   - [ ] 6.5.  Geographical Properties 

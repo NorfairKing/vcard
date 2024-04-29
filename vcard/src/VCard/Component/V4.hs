@@ -9,6 +9,8 @@ where
 
 import Control.DeepSeq
 import qualified Data.DList as DList
+import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 import Data.Proxy
 import Data.Validity
 import GHC.Generics (Generic)
@@ -16,12 +18,13 @@ import VCard.Component.Class
 import VCard.Property
 
 data Card = Card
-  { cardSource :: !(Maybe Source),
-    cardFormattedName :: !FormattedName,
+  { cardSources :: ![Source],
+    cardFormattedNames :: !(NonEmpty FormattedName),
     cardName :: !(Maybe Name),
     cardVersion :: !Version,
-    cardNickname :: !(Maybe Nickname),
-    cardGender :: !(Maybe Gender)
+    cardNicknames :: ![Nickname],
+    cardGender :: !(Maybe Gender),
+    cardEmails :: ![Email]
   }
   deriving (Show, Eq, Generic)
 
@@ -32,12 +35,14 @@ instance NFData Card
 instance IsComponent Card where
   componentName Proxy = "VCARD"
   componentP componentProperties = do
-    cardSource <- optionalPropertyP componentProperties
-    cardFormattedName <- requiredPropertyP componentProperties
-    cardName <- optionalPropertyP componentProperties
     cardVersion <- requiredPropertyP componentProperties
-    cardNickname <- optionalPropertyP componentProperties
+
+    cardSources <- listOfPropertiesP componentProperties
+    cardFormattedNames <- nonemptyListOfPropertiesP componentProperties
+    cardName <- optionalPropertyP componentProperties
+    cardNicknames <- listOfPropertiesP componentProperties
     cardGender <- optionalPropertyP componentProperties
+    cardEmails <- listOfPropertiesP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -51,9 +56,10 @@ instance IsComponent Card where
         --    anywhere in the vCard object, or even to be absent.
         -- @
         DList.singleton $ propertyContentLineB cardVersion,
-        maybe mempty (DList.singleton . propertyContentLineB) cardSource,
-        DList.singleton $ propertyContentLineB cardFormattedName,
+        DList.fromList $ map propertyContentLineB cardSources,
+        DList.fromList $ map propertyContentLineB $ NE.toList cardFormattedNames,
         maybe mempty (DList.singleton . propertyContentLineB) cardName,
-        maybe mempty (DList.singleton . propertyContentLineB) cardNickname,
-        maybe mempty (DList.singleton . propertyContentLineB) cardGender
+        DList.fromList $ map propertyContentLineB cardNicknames,
+        maybe mempty (DList.singleton . propertyContentLineB) cardGender,
+        DList.fromList $ map propertyContentLineB cardEmails
       ]

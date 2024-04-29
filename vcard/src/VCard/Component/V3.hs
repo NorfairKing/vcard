@@ -9,6 +9,8 @@ where
 
 import Control.DeepSeq
 import qualified Data.DList as DList
+import Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 import Data.Proxy
 import Data.Validity
 import GHC.Generics (Generic)
@@ -16,11 +18,12 @@ import VCard.Component.Class
 import VCard.Property
 
 data Card = Card
-  { cardSource :: !(Maybe Source),
-    cardFormattedName :: !FormattedName,
+  { cardSources :: ![Source],
+    cardFormattedNames :: !(NonEmpty FormattedName),
     cardName :: !Name,
     cardVersion :: !Version,
-    cardNickname :: !(Maybe Nickname)
+    cardNicknames :: ![Nickname],
+    cardEmails :: ![Email]
   }
   deriving (Show, Eq, Generic)
 
@@ -31,16 +34,18 @@ instance NFData Card
 instance IsComponent Card where
   componentName Proxy = "VCARD"
   componentP componentProperties = do
-    cardSource <- optionalPropertyP componentProperties
-    cardFormattedName <- requiredPropertyP componentProperties
-    cardName <- requiredPropertyP componentProperties
     cardVersion <- requiredPropertyP componentProperties
-    cardNickname <- optionalPropertyP componentProperties
+
+    cardSources <- listOfPropertiesP componentProperties
+    cardFormattedNames <- nonemptyListOfPropertiesP componentProperties
+    cardName <- requiredPropertyP componentProperties
+    cardNicknames <- listOfPropertiesP componentProperties
+    cardEmails <- listOfPropertiesP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
-      [ -- In version 4 (not 3), this must come immediately after BEGIN, see
-        -- [RFC2426 Section 6.7.9: VERSION](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
+      [ -- In version 4 and 3 (not 2.1), this must come immediately after BEGIN, see
+        -- [RFC6350 Section 6.7.9: VERSION](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
         --
         -- @
         -- Special notes:  This property MUST be present in the vCard object,
@@ -50,10 +55,11 @@ instance IsComponent Card where
         --    anywhere in the vCard object, or even to be absent.
         -- @
         --
-        -- For easy distinguishing between 3 and 4, we'll put it first here as well.
+        -- For easy distinguishing between 2.1 and (3 and 4), we'll put it first here as well.
         DList.singleton $ propertyContentLineB cardVersion,
-        maybe mempty (DList.singleton . propertyContentLineB) cardSource,
-        DList.singleton $ propertyContentLineB cardFormattedName,
+        DList.fromList $ map propertyContentLineB cardSources,
+        DList.fromList $ map propertyContentLineB $ NE.toList cardFormattedNames,
         DList.singleton $ propertyContentLineB cardName,
-        maybe mempty (DList.singleton . propertyContentLineB) cardNickname
+        DList.fromList $ map propertyContentLineB cardNicknames,
+        DList.fromList $ map propertyContentLineB cardEmails
       ]

@@ -29,6 +29,7 @@ module VCard.Component.Class
     optionalPropertyP,
     optionalPropertyWithDefaultP,
     listOfPropertiesP,
+    nonemptyListOfPropertiesP,
     setOfPropertiesP,
 
     -- * Helper functions for writing the builder
@@ -36,6 +37,7 @@ module VCard.Component.Class
     optionalPropertyB,
     optionalPropertyWithDefaultB,
     listOfPropertiesB,
+    nonemptyListOfPropertiesB,
     setOfPropertiesB,
   )
 where
@@ -391,10 +393,10 @@ listOfPropertiesB ::
 listOfPropertiesB = M.unionsWith (<>) . map requiredPropertyB
 
 listOfPropertiesP ::
-  forall a.
-  (IsProperty a) =>
+  forall property.
+  (IsProperty property) =>
   Map ContentLineName (NonEmpty ContentLineValue) ->
-  ConformComponent [a]
+  ConformComponent [property]
 listOfPropertiesP m = do
   let values = maybe [] NE.toList $ M.lookup name m
   mapM
@@ -406,7 +408,33 @@ listOfPropertiesP m = do
     )
     (map (ContentLine Nothing name) values)
   where
-    name = propertyName (Proxy :: Proxy a)
+    name = propertyName (Proxy :: Proxy property)
+
+nonemptyListOfPropertiesB ::
+  (IsProperty property) =>
+  NonEmpty property ->
+  Map ContentLineName (NonEmpty ContentLineValue)
+nonemptyListOfPropertiesB = listOfPropertiesB . NE.toList
+
+nonemptyListOfPropertiesP ::
+  forall property.
+  (IsProperty property) =>
+  Map ContentLineName (NonEmpty ContentLineValue) ->
+  ConformComponent (NonEmpty property)
+nonemptyListOfPropertiesP m =
+  case M.lookup name m of
+    Nothing -> unfixableError $ ComponentParseErrorMissingRequiredProperty name
+    Just values ->
+      mapM
+        ( conformMapAll
+            ComponentParseErrorPropertyError
+            ComponentParseFixableErrorPropertyFixableError
+            absurd
+            . propertyContentLineP
+        )
+        (NE.map (ContentLine Nothing name) values)
+  where
+    name = propertyName (Proxy :: Proxy property)
 
 setOfPropertiesB ::
   (IsProperty property) =>
@@ -415,8 +443,8 @@ setOfPropertiesB ::
 setOfPropertiesB = listOfPropertiesB . S.toList
 
 setOfPropertiesP ::
-  forall a.
-  (Ord a, IsProperty a) =>
+  forall property.
+  (Ord property, IsProperty property) =>
   Map ContentLineName (NonEmpty ContentLineValue) ->
-  ConformComponent (Set a)
+  ConformComponent (Set property)
 setOfPropertiesP = fmap S.fromList . listOfPropertiesP
