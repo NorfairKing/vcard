@@ -1,7 +1,7 @@
 { mkDerivation, base, bytestring, case-insensitive, conformance
-, containers, deepseq, dlist, lib, megaparsec, text, validity
-, validity-case-insensitive, validity-containers, validity-text
-, validity-time
+, containers, deepseq, dlist, lib, megaparsec, network-uri, text
+, validity, validity-case-insensitive, validity-containers
+, validity-network-uri, validity-text, validity-time
 }:
 mkDerivation {
   pname = "vcard";
@@ -9,8 +9,9 @@ mkDerivation {
   src = ./.;
   libraryHaskellDepends = [
     base bytestring case-insensitive conformance containers deepseq
-    dlist megaparsec text validity validity-case-insensitive
-    validity-containers validity-text validity-time
+    dlist megaparsec network-uri text validity
+    validity-case-insensitive validity-containers validity-network-uri
+    validity-text validity-time
   ];
   license = "unknown";
 }

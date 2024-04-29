@@ -20,6 +20,10 @@ import VCard.Parameter ()
 import VCard.Parameter.Gen ()
 import VCard.PropertyType
 
+instance GenValid URI where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 propertyTypeRenderExampleSpec ::
   ( Show propertyType,
     IsPropertyType propertyType,

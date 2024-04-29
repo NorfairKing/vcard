@@ -12,11 +12,51 @@ import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
 import VCard.ContentLine
-import VCard.PropertyType.Class
+import VCard.PropertyType
 import VCard.PropertyType.Gen
 
 spec :: Spec
 spec = do
+  describe "Text" $ do
+    propertyTypeSpec @Text
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "Project XYZ Final Review\\nConference Room - 3B\\nCome Prepared.")
+      ("Project XYZ Final Review\nConference Room - 3B\nCome Prepared." :: Text)
+
+  let fancyCharacters = genTextBy $ elements ['\n', 'r', '\t', ' ', ';', ',', '\\']
+  describe "escapeText" $ do
+    it "escapes this diverse example correctly" $
+      escapeText "hello world\n\\,;," `shouldBe` "hello world\\n\\\\\\,\\;\\,"
+
+  describe "unEscapeText" $ do
+    it "unEscapes this diverse example correctly" $
+      unEscapeText "hello world\\n\\N\\\\\\,\\;\\," `shouldBe` "hello world\n\n\\,;,"
+
+    it "roundtrips with escapeText" $
+      forAllValid $ \text ->
+        unEscapeText (escapeText text) `shouldBe` text
+
+    it "roundtrips with escapeText for fancy characters" $
+      forAll fancyCharacters $ \text ->
+        unEscapeText (escapeText text) `shouldBe` text
+
+  describe "URI" $ do
+    genValidSpec @URI
+    propertyTypeSpec @URI
+
+    -- @
+    -- Examples for "uri":
+    --
+    --     http://www.example.com/my/picture.jpg
+    --     ldap://ldap.example.com/cn=babs%20jensen
+    -- @
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "http://www.example.com/my/picture.jpg")
+      ("http://www.example.com/my/picture.jpg" :: URI)
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "ldap://ldap.example.com/cn=babs%20jensen")
+      ("ldap://ldap.example.com/cn=babs%20jensen" :: URI)
+
   describe "Integer" $ do
     propertyTypeSpec @Int64
     propertyTypeExampleSpec
@@ -85,26 +125,3 @@ spec = do
     propertyTypeParseExampleSpec
       (mkSimpleContentLineValue "True")
       True
-
-  describe "Text" $ do
-    propertyTypeSpec @Text
-    propertyTypeExampleSpec
-      (mkSimpleContentLineValue "Project XYZ Final Review\\nConference Room - 3B\\nCome Prepared.")
-      ("Project XYZ Final Review\nConference Room - 3B\nCome Prepared." :: Text)
-
-  let fancyCharacters = genTextBy $ elements ['\n', 'r', '\t', ' ', ';', ',', '\\']
-  describe "escapeText" $ do
-    it "escapes this diverse example correctly" $
-      escapeText "hello world\n\\,;," `shouldBe` "hello world\\n\\\\\\,\\;\\,"
-
-  describe "unEscapeText" $ do
-    it "unEscapes this diverse example correctly" $
-      unEscapeText "hello world\\n\\N\\\\\\,\\;\\," `shouldBe` "hello world\n\n\\,;,"
-
-    it "roundtrips with escapeText" $
-      forAllValid $ \text ->
-        unEscapeText (escapeText text) `shouldBe` text
-
-    it "roundtrips with escapeText for fancy characters" $
-      forAll fancyCharacters $ \text ->
-        unEscapeText (escapeText text) `shouldBe` text

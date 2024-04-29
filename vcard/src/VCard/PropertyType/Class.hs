@@ -50,6 +50,7 @@ data PropertyTypeParseError
       !ValueDataType
   | UnparseableBoolean !Text
   | UnparseableInteger !Text
+  | UnparseableURI !Text
   deriving (Show, Eq, Ord)
 
 instance Exception PropertyTypeParseError where
@@ -62,14 +63,17 @@ instance Exception PropertyTypeParseError where
         ]
     UnparseableBoolean t -> unwords ["Unparseable BOOLEAN", show t]
     UnparseableInteger t -> unwords ["Unparseable INTEGER", show t]
+    UnparseableURI t -> unwords ["Unparseable URI", show t]
 
 data PropertyTypeParseFixableError
   = ParameterParseFixableError !ParameterParseFixableError
+  | UrlTextEncoded !Text
   deriving (Show, Eq, Ord)
 
 instance Exception PropertyTypeParseFixableError where
   displayException = \case
     ParameterParseFixableError ppfe -> displayException ppfe
+    UrlTextEncoded t -> unwords ["URL was TEXT-encoded but should not have been:", show t]
 
 type PropertyTypeParseWarning = Void
 

@@ -21,6 +21,7 @@ library:
   - genvalidity-case-insensitive
   - genvalidity-containers
   - genvalidity-network-uri
+  - genvalidity-network-uri
   - genvalidity-sydtest
   - genvalidity-text
   - genvalidity-time

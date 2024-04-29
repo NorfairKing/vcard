@@ -14,9 +14,11 @@ library:
   - deepseq
   - dlist
   - megaparsec
+  - network-uri
   - text
   - validity
   - validity-case-insensitive
   - validity-containers
+  - validity-network-uri
   - validity-text
   - validity-time
