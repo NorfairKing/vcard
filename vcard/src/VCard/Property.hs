@@ -72,6 +72,14 @@ module VCard.Property
 
     -- *** Explanatory properties
 
+    -- **** UID
+    UID (..),
+    mkUIDText,
+    mkUIDURI,
+    URIUID (..),
+    TextUID (..),
+    mkTextUID,
+
     -- **** Version
     Version (..),
     version3,
@@ -447,7 +455,7 @@ instance IsProperty Name where
   propertyName Proxy = "N"
   propertyP clv = do
     nameLanguage <- propertyParamP clv
-    let namess = map splitOnCommas (splitOnSemicolons (contentLineValueRaw clv))
+    let namess = splitOnSemicolonsThenCommas (contentLineValueRaw clv)
 
     (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) <- case namess of
       [n1, n2, n3, n4, n5] -> pure (n1, n2, n3, n4, n5)
@@ -465,13 +473,12 @@ instance IsProperty Name where
   propertyB Name {..} =
     insertMParam nameLanguage $
       mkSimpleContentLineValue $
-        T.intercalate
-          ";"
-          [ T.intercalate "," nameSurnames,
-            T.intercalate "," nameGivenNames,
-            T.intercalate "," nameAdditionalNames,
-            T.intercalate "," nameHonorificPrefixes,
-            T.intercalate "," nameHonorificSuffixes
+        reassembleWithCommasThenSemicolons
+          [ nameSurnames,
+            nameGivenNames,
+            nameAdditionalNames,
+            nameHonorificPrefixes,
+            nameHonorificSuffixes
           ]
 
 mkName ::
@@ -632,13 +639,12 @@ instance IsProperty Gender where
               (identityText : _) -> Just identityText -- TODO fixable error for extra parts
         pure Gender {..}
   propertyB Gender {..} =
-    mkSimpleContentLineValue
-      $ T.intercalate
-        ";"
-      $ concat
-        [ [maybe "" renderSex genderSex],
-          maybeToList genderIdentity
-        ]
+    mkSimpleContentLineValue $
+      reassembleWithSemicolons $
+        concat
+          [ [maybe "" renderSex genderSex],
+            maybeToList genderIdentity
+          ]
 
 mkGender :: Sex -> Gender
 mkGender s =
@@ -854,6 +860,101 @@ instance IsProperty Email where
 mkEmail :: Text -> Email
 mkEmail emailValue =
   Email {..}
+
+-- [RFC 6350 Section 6.7.6](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.6)
+--
+-- @
+-- Purpose:  To specify a value that represents a globally unique
+--    identifier corresponding to the entity associated with the vCard.
+--
+-- Value type:  A single URI value.  It MAY also be reset to free-form
+--    text.
+--
+-- Cardinality:  *1
+--
+-- Special notes:  This property is used to uniquely identify the object
+--    that the vCard represents.  The "uuid" URN namespace defined in
+--    [RFC4122] is particularly well suited to this task, but other URI
+--    schemes MAY be used.  Free-form text MAY also be used.
+--
+-- ABNF:
+--
+--   UID-param = UID-uri-param / UID-text-param
+--   UID-value = UID-uri-value / UID-text-value
+--     ; Value and parameter MUST match.
+--
+--   UID-uri-param = "VALUE=uri"
+--   UID-uri-value = URI
+--
+--   UID-text-param = "VALUE=text"
+--   UID-text-value = text
+--
+--   UID-param =/ any-param
+--
+-- Example:
+--
+--         UID:urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+-- @
+data UID
+  = UIDURI !URIUID
+  | UIDText !TextUID
+  deriving (Show, Eq, Generic)
+
+instance Validity UID
+
+instance NFData UID
+
+instance IsProperty UID where
+  propertyName Proxy = "UID"
+  propertyP clv = do
+    mValueDataType <- propertyParamP clv
+    case fromMaybe defaultUIDType mValueDataType of
+      TypeText -> UIDText <$> wrapPropertyTypeP TextUID clv
+      TypeURI -> UIDURI <$> wrapPropertyTypeP URIUID clv
+      typ -> unfixableError $ ValueMismatch "UID" typ (Just TypeText) [TypeURI]
+
+  propertyB = \case
+    UIDURI (URIUID u) -> propertyTypeB u
+    UIDText (TextUID t) -> typedPropertyTypeB t
+
+-- @
+-- By default, it is a single free-form text value
+-- @
+defaultUIDType :: ValueDataType
+defaultUIDType = TypeURI
+
+mkUIDText :: Text -> UID
+mkUIDText textUIDValue = UIDText TextUID {..}
+
+mkUIDURI :: URI -> UID
+mkUIDURI uriUIDValue = UIDURI URIUID {..}
+
+data URIUID = URIUID
+  { uriUIDValue :: !URI
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity URIUID
+
+instance NFData URIUID
+
+data TextUID = TextUID
+  { textUIDValue :: !Text
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity TextUID
+
+instance NFData TextUID
+
+-- For VERSION:3.0
+instance IsProperty TextUID where
+  propertyName Proxy = "UID"
+  propertyP = wrapPropertyTypeP TextUID
+  propertyB = propertyTypeB . textUIDValue
+
+mkTextUID :: Text -> TextUID
+mkTextUID textUIDValue = TextUID {..}
 
 -- [RFC6350 Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
 --

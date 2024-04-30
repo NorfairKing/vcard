@@ -20,6 +20,10 @@ module VCard.PropertyType.Class
     unEscapeText,
     splitOnCommas,
     splitOnSemicolons,
+    splitOnSemicolonsThenCommas,
+    reassembleWithCommas,
+    reassembleWithSemicolons,
+    reassembleWithCommasThenSemicolons,
 
     -- ** Builders
     typedPropertyTypeB,
@@ -361,33 +365,65 @@ propertyTypeListP clv =
             pure (clv {contentLineValueRaw = raw})
        in mapM typedPropertyTypeP clvs
 
+-- The plan:
+-- Don't reuse splitOnCommas because they also need to un-escape backslashes.
+-- in reassembleWithCommasThenSemicolons, don't reuse "reassembleWithCommas"
+-- because they also need to escape backslashes.
+splitOnSemicolonsThenCommas :: Text -> [[Text]]
+splitOnSemicolonsThenCommas =
+  map (map (unescape '\\') . splitOnCommas) . splitOnSemicolons
+
 -- Split on commas, but not escaped commas.
 splitOnCommas :: Text -> [Text]
-splitOnCommas = \case
-  "" -> []
-  t -> map T.pack $ go [] $ T.unpack t
-  where
-    go :: String -> String -> [String]
-    go acc = \case
-      [] -> [reverse acc]
-      '\\' : '\\' : rest -> go ('\\' : '\\' : acc) rest
-      '\\' : ',' : rest -> go (',' : '\\' : acc) rest
-      ',' : rest -> reverse acc : go [] rest
-      c : rest -> go (c : acc) rest
+splitOnCommas = splitOnUnescaped ','
 
 -- Split on semicolons, but not escaped semicolons.
 splitOnSemicolons :: Text -> [Text]
-splitOnSemicolons = \case
+splitOnSemicolons = splitOnUnescaped ';'
+
+splitOnUnescaped :: Char -> Text -> [Text]
+splitOnUnescaped s = \case
   "" -> []
-  t -> map T.pack $ go [] $ T.unpack t
+  t -> map (unescape s . T.pack) $ go [] $ T.unpack t
+    where
+      go :: String -> String -> [String]
+      go acc = \case
+        [] -> [reverse acc]
+        '\\' : '\\' : rest -> go ('\\' : '\\' : acc) rest
+        '\\' : c : rest | c == s -> go (c : '\\' : acc) rest
+        c : rest
+          | c == s -> reverse acc : go [] rest
+          | otherwise -> go (c : acc) rest
+
+reassembleWithCommasThenSemicolons :: [[Text]] -> Text
+reassembleWithCommasThenSemicolons =
+  reassembleWithSemicolons . map (reassembleWithCommas . map (escape '\\'))
+
+reassembleWithCommas :: [Text] -> Text
+reassembleWithCommas = T.intercalate "," . map (escape ',')
+
+reassembleWithSemicolons :: [Text] -> Text
+reassembleWithSemicolons = T.intercalate ";" . map (escape ';')
+
+unescape :: Char -> Text -> Text
+unescape s = T.pack . go . T.unpack
   where
-    go :: String -> String -> [String]
-    go acc = \case
-      [] -> [reverse acc]
-      '\\' : '\\' : rest -> go ('\\' : '\\' : acc) rest
-      '\\' : ';' : rest -> go (';' : '\\' : acc) rest
-      ';' : rest -> reverse acc : go [] rest
-      c : rest -> go (c : acc) rest
+    go = \case
+      [] -> []
+      -- Don't unescape backslashes here
+      '\\' : '\\' : rest | s /= '\\' -> '\\' : '\\' : go rest
+      '\\' : c : rest
+        | c == s -> c : go rest
+        | otherwise -> '\\' : go (c : rest)
+      c : rest -> c : go rest
+
+escape :: Char -> Text -> Text
+escape s = T.pack . concatMap go . T.unpack
+  where
+    go :: Char -> String
+    go c
+      | c == s = ['\\', c]
+      | otherwise = [c]
 
 propertyTypeListB :: (IsPropertyType propertyType) => [propertyType] -> ContentLineValue
 propertyTypeListB = \case

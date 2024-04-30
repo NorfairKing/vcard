@@ -327,17 +327,19 @@ paramP = do
 paramNameP :: P ParamName
 paramNameP = ParamName <$> tokenTextP
 
--- param-value   = paramtext / quoted-string
+-- * SAFE-CHAR / DQUOTE *QSAFE-CHAR DQUOTE
+
 paramValueP :: P ParamValue
 paramValueP =
   try (QuotedParam <$> quotedStringP)
     <|> (UnquotedParam <$> paramTextP)
 
---  paramtext     = *SAFE-CHAR
+-- * SAFE-CHAR
+
 paramTextP :: P Text
 paramTextP = unescapeParamValue . T.pack <$> many safeCharP
 
--- quoted-string = DQUOTE *QSAFE-CHAR DQUOTE
+-- DQUOTE *QSAFE-CHAR DQUOTE
 quotedStringP :: P Text
 quotedStringP = do
   void $ char' '"'

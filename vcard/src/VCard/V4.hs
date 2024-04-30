@@ -19,6 +19,7 @@ import Data.Validity
 import GHC.Generics (Generic)
 import VCard.Component.Class
 import VCard.Property
+import VCard.PropertyType
 import qualified VCard.V3 as V3
 
 data Card = Card
@@ -28,7 +29,8 @@ data Card = Card
     cardNicknames :: ![Nickname],
     cardGender :: !(Maybe Gender),
     cardEmails :: ![Email],
-    cardTelephones :: ![Telephone]
+    cardTelephones :: ![Telephone],
+    cardUID :: !(Maybe UID)
   }
   deriving (Show, Eq, Generic)
 
@@ -49,6 +51,7 @@ instance IsComponent Card where
     cardGender <- optionalPropertyP componentProperties
     cardEmails <- listOfPropertiesP componentProperties
     cardTelephones <- listOfPropertiesP componentProperties
+    cardUID <- optionalPropertyP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -68,7 +71,8 @@ instance IsComponent Card where
         listOfPropertiesB cardNicknames,
         optionalPropertyB cardGender,
         listOfPropertiesB cardEmails,
-        listOfPropertiesB cardTelephones
+        listOfPropertiesB cardTelephones,
+        optionalPropertyB cardUID
       ]
 
 fromV3 :: V3.Card -> Card
@@ -80,7 +84,8 @@ fromV3 c =
       cardNicknames = V3.cardNicknames c,
       cardEmails = V3.cardEmails c,
       cardGender = Nothing,
-      cardTelephones = V3.cardTelephones c
+      cardTelephones = V3.cardTelephones c,
+      cardUID = UIDText <$> V3.cardUID c
     }
 
 toV3 :: Card -> V3.Card
@@ -91,5 +96,10 @@ toV3 c =
       V3.cardName = fromMaybe emptyName $ cardName c,
       V3.cardNicknames = cardNicknames c,
       V3.cardEmails = cardEmails c,
-      V3.cardTelephones = cardTelephones c
+      V3.cardTelephones = cardTelephones c,
+      V3.cardUID = do
+        u <- cardUID c
+        case u of
+          UIDText tuid -> Just tuid
+          UIDURI uriuid -> Just $ TextUID $ renderURI $ uriUIDValue uriuid -- TODO keep parameters too
     }

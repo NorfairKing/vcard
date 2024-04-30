@@ -8,6 +8,7 @@ module VCard.PropertyTypeSpec where
 import Data.GenValidity.Text
 import Data.Int
 import Data.Text (Text)
+import qualified Data.Text as T
 import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
@@ -39,6 +40,45 @@ spec = do
     it "roundtrips with escapeText for fancy characters" $
       forAll fancyCharacters $ \text ->
         unEscapeText (escapeText text) `shouldBe` text
+
+  let annoyingText =
+        T.concat
+          <$> genListOf
+            ( oneof
+                [ pure "\\",
+                  pure ",",
+                  pure ";",
+                  genValid
+                ]
+            )
+  describe "splitOnCommas" $ do
+    it "roundtrips with reassembleWithCommas" $
+      forAllValid $ \t ->
+        reassembleWithCommas (splitOnCommas t)
+          `shouldBe` t
+    it "roundtrips with reassembleWithCommas for annoying text" $
+      forAll annoyingText $ \t ->
+        reassembleWithCommas (splitOnCommas t) `shouldBe` t
+
+  describe "splitOnSemicolons" $ do
+    it "roundtrips with reassembleWithSemicolons" $
+      forAllValid $ \t ->
+        reassembleWithSemicolons (splitOnSemicolons t)
+          `shouldBe` t
+    it "roundtrips with reassembleWithSemicolons for annoying text" $
+      forAll annoyingText $ \t ->
+        reassembleWithSemicolons (splitOnSemicolons t) `shouldBe` t
+
+  describe "splitOnSemicolonsThenCommas" $ do
+    it "roundtrips with reassembleWithCommasThenSemicolons" $
+      forAllValid $ \t ->
+        reassembleWithCommasThenSemicolons (splitOnSemicolonsThenCommas t)
+          `shouldBe` t
+    it "roundtrips with reassembleWithCommasThenSemicolons for annoying text" $
+      forAll annoyingText $ \t -> do
+        let split = splitOnSemicolonsThenCommas t
+        context (show split) $
+          reassembleWithCommasThenSemicolons split `shouldBe` t
 
   describe "URI" $ do
     genValidSpec @URI

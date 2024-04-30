@@ -23,7 +23,8 @@ data Card = Card
     cardName :: !Name,
     cardNicknames :: ![Nickname],
     cardEmails :: ![Email],
-    cardTelephones :: ![Telephone]
+    cardTelephones :: ![Telephone],
+    cardUID :: !(Maybe TextUID)
   }
   deriving (Show, Eq, Generic)
 
@@ -43,6 +44,7 @@ instance IsComponent Card where
     cardNicknames <- listOfPropertiesP componentProperties
     cardEmails <- listOfPropertiesP componentProperties
     cardTelephones <- listOfPropertiesP componentProperties
+    cardUID <- optionalPropertyP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -64,5 +66,6 @@ instance IsComponent Card where
         requiredPropertyB cardName,
         listOfPropertiesB cardNicknames,
         listOfPropertiesB cardEmails,
-        listOfPropertiesB cardTelephones
+        listOfPropertiesB cardTelephones,
+        optionalPropertyB cardUID
       ]

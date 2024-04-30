@@ -189,6 +189,10 @@ spec = do
     genValidSpec @Name
     propertySpec @Name
 
+    propertyExampleSpec "N:Foo,Bar;;;;" (mkName ["Foo", "Bar"] [] [] [] [])
+    propertyExampleSpec "N:Foo\\;Bar;;;;" (mkName ["Foo;Bar"] [] [] [] [])
+    propertyExampleSpec "N:Foo\\\\Bar;;;;" (mkName ["Foo\\Bar"] [] [] [] [])
+
     -- [RFC 2425 Section 8.2](https://datatracker.ietf.org/doc/html/rfc2425#section-8.2)
     --
     -- @
@@ -586,6 +590,70 @@ spec = do
     propertyRenderExampleSpec "EMAIL:jqpublic@xyz.example.com" (mkEmail "jqpublic@xyz.example.com")
     propertyParseExampleSpec "EMAIL;PREF=1:jane_doe@example.com" (mkEmail "jane_doe@example.com")
     propertyRenderExampleSpec "EMAIL:jane_doe@example.com" (mkEmail "jane_doe@example.com")
+
+  describe "UID" $ do
+    describe "TextUID" $ do
+      genValidSpec @TextUID
+      propertySpec @TextUID
+
+      -- [RFC 2426 Section 3.6.7](https://datatracker.ietf.org/doc/html/rfc6350#section-3.6.7)
+      --
+      -- @
+      -- Type example:
+      --
+      --      UID:19950401-080045-40000F192713-0052
+      -- @
+      propertyExampleSpec "UID:19950401-080045-40000F192713-0052" (mkTextUID "19950401-080045-40000F192713-0052")
+
+      -- [RFC 6352 Section 6.3.2](https://datatracker.ietf.org/doc/html/rfc6352#section-6.3.2)
+      --
+      -- @
+      -- UID:1234-5678-9000-1
+      -- @
+      --
+      propertyExampleSpec "UID:1234-5678-9000-1" (mkTextUID "1234-5678-9000-1")
+      -- [RFC 6352 Section 8.6.3](https://datatracker.ietf.org/doc/html/rfc6352#section-8.6.3)
+      -- and
+      -- [RFC 6352 Section 8.6.4](https://datatracker.ietf.org/doc/html/rfc6352#section-8.6.4)
+      --
+      -- @
+      -- UID:34222-232@example.com
+      -- @
+      propertyExampleSpec "UID:34222-232@example.com" (mkTextUID "34222-232@example.com")
+
+    genValidSpec @UID
+    propertySpec @UID
+
+    -- [RFC 6350 Section 6.6.5](https://datatracker.ietf.org/doc/html/rfc6350#section-6.6.5)
+    --
+    -- @
+    -- UID:urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af
+    -- UID:urn:uuid:b8767877-b4a1-4c70-9acc-505d3819e519
+    -- @
+    propertyExampleSpec "UID:urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af" (mkUIDURI "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af")
+    propertyExampleSpec "UID:urn:uuid:b8767877-b4a1-4c70-9acc-505d3819e519" (mkUIDURI "urn:uuid:b8767877-b4a1-4c70-9acc-505d3819e519")
+
+    -- [RFC 6350 Section 6.7.6](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.6)
+    --
+    -- @
+    -- Example:
+    --
+    --         UID:urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+    -- @
+    propertyExampleSpec "UID:urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6" (mkUIDURI "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6")
+
+    -- [RFC 6350 Section 7.2](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2)
+    -- and
+    -- [RFC 6350 Section 7.2.3](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2.3)
+    -- and
+    -- [RFC 6350 Section 7.2.4](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2.4)
+    -- and
+    -- [RFC 6350 Section 7.2.5](https://datatracker.ietf.org/doc/html/rfc6350#section-7.2.5)
+    --
+    -- @
+    -- UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1
+    -- @
+    propertyExampleSpec "UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1" (mkUIDURI "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1")
 
   describe "Version" $ do
     genValidSpec @Version

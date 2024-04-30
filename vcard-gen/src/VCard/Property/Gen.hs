@@ -82,6 +82,18 @@ instance GenValid Email where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
 
+instance GenValid UID where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid TextUID where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid URIUID where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 instance GenValid Version where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
