@@ -66,11 +66,11 @@ import Data.Validity
 import Data.Void
 import GHC.Generics (Generic)
 import VCard.Component
-import VCard.Component.V3 as V3
-import VCard.Component.V4 as V4
 import VCard.ContentLine
 import VCard.Property
 import VCard.UnfoldedLine
+import VCard.V3 as V3
+import VCard.V4 as V4
 
 -- | MIME Content type
 --

@@ -9,7 +9,8 @@ import Data.GenValidity.Criterion
 import Data.GenValidity.Vector ()
 import VCard
 import VCard.Component.Gen ()
-import VCard.Component.V4 as V4
+import VCard.V3 as V3
+import VCard.V4 as V4
 
 main :: IO ()
 main = do
@@ -17,11 +18,13 @@ main = do
     [ bgroup
         "generators"
         [ genValidBench @VCard,
-          genValidBench @V4.Card
+          genValidBench @V4.Card,
+          genValidBench @V3.Card
         ],
       bgroup
         "shrinkers"
         [ shrinkValidBench @VCard,
-          shrinkValidBench @V4.Card
+          shrinkValidBench @V4.Card,
+          shrinkValidBench @V3.Card
         ]
     ]

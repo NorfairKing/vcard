@@ -88,14 +88,14 @@ test-suite vcard-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      VCard.Component.V3Spec
-      VCard.Component.V4Spec
       VCard.ComponentSpec
       VCard.ContentLineSpec
       VCard.ParameterSpec
       VCard.PropertySpec
       VCard.PropertyTypeSpec
       VCard.UnfoldedLineSpec
+      VCard.V3Spec
+      VCard.V4Spec
       VCardSpec
       Paths_vcard_gen
   hs-source-dirs:

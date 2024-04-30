@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module VCard.Component.V4
+module VCard.V3
   ( Card (..),
   )
 where
@@ -20,9 +20,8 @@ import VCard.Property
 data Card = Card
   { cardSources :: ![Source],
     cardFormattedNames :: !(NonEmpty FormattedName),
-    cardName :: !(Maybe Name),
+    cardName :: !Name,
     cardNicknames :: ![Nickname],
-    cardGender :: !(Maybe Gender),
     cardEmails :: ![Email]
   }
   deriving (Show, Eq, Generic)
@@ -35,18 +34,18 @@ instance IsComponent Card where
   componentName Proxy = "VCARD"
   componentP componentProperties = do
     cardVersion <- requiredPropertyP componentProperties
-    when (cardVersion /= version4) $ unfixableError $ ComponentParseErrorVersionMismatch cardVersion version4
+    when (cardVersion /= version3) $ unfixableError $ ComponentParseErrorVersionMismatch cardVersion version3
 
     cardSources <- listOfPropertiesP componentProperties
     cardFormattedNames <- nonemptyListOfPropertiesP componentProperties
-    cardName <- optionalPropertyP componentProperties
+    cardName <- requiredPropertyP componentProperties
     cardNicknames <- listOfPropertiesP componentProperties
-    cardGender <- optionalPropertyP componentProperties
     cardEmails <- listOfPropertiesP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
-      [ -- [Section 6.7.9: VERSION](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
+      [ -- In version 4 and 3 (not 2.1), this must come immediately after BEGIN, see
+        -- [RFC6350 Section 6.7.9: VERSION](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
         --
         -- @
         -- Special notes:  This property MUST be present in the vCard object,
@@ -55,11 +54,12 @@ instance IsComponent Card where
         --    that earlier versions of vCard allowed this property to be placed
         --    anywhere in the vCard object, or even to be absent.
         -- @
-        requiredPropertyB version4,
+        --
+        -- For easy distinguishing between 2.1 and (3 and 4), we'll put it first here as well.
+        requiredPropertyB (Version "3.0"),
         listOfPropertiesB cardSources,
         nonemptyListOfPropertiesB cardFormattedNames,
-        optionalPropertyB cardName,
+        requiredPropertyB cardName,
         listOfPropertiesB cardNicknames,
-        optionalPropertyB cardGender,
         listOfPropertiesB cardEmails
       ]

@@ -13,8 +13,6 @@ library
       VCard
       VCard.Component
       VCard.Component.Class
-      VCard.Component.V3
-      VCard.Component.V4
       VCard.ContentLine
       VCard.Parameter
       VCard.Parameter.Class
@@ -24,6 +22,8 @@ library
       VCard.PropertyType.Class
       VCard.PropertyType.URI
       VCard.UnfoldedLine
+      VCard.V3
+      VCard.V4
   other-modules:
       Paths_vcard
   hs-source-dirs:

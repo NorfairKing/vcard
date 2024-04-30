@@ -21,12 +21,12 @@ import Test.Syd
 import Test.Syd.Validity
 import VCard
 import VCard.Component.Class
-import VCard.Component.V3 as V3
-import VCard.Component.V4 as V4
 import VCard.ContentLine
 import VCard.ContentLine.Gen ()
 import VCard.Property.Gen ()
 import VCard.TestUtils
+import VCard.V3 as V3
+import VCard.V4 as V4
 
 instance GenValid V3.Card where
   genValid = genValidStructurallyWithoutExtraChecking

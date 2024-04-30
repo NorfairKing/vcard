@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeApplications #-}
 
-module VCard.Component.V3Spec (spec) where
+module VCard.V4Spec (spec) where
 
 import Conformance.TestUtils
 import qualified Data.Text as T
@@ -8,21 +8,21 @@ import Test.Syd
 import Test.Syd.Validity
 import VCard
 import VCard.Component.Gen
-import VCard.Component.V3 as V3
+import VCard.V4 as V4
 
 spec :: Spec
 spec = do
   describe "Card" $ do
-    genValidSpec @V3.Card
-    componentSpec @V3.Card
+    genValidSpec @V4.Card
+    componentSpec @V4.Card
 
-    componentScenarioDir @V3.Card "test_resources/v3"
+    componentScenarioDir @V4.Card "test_resources/v4"
 
-  describe "renderCardV3" $
-    it "roundtrips with parseCardV3" $
+  describe "renderCardV4" $
+    it "roundtrips with parseCardV4" $
       forAllValid $ \vcard ->
-        let rendered = renderCardV3 vcard
+        let rendered = renderCardV4 vcard
             ctx = unlines ["Rendered VCARD:", T.unpack rendered]
          in context ctx $ do
-              vcard' <- shouldConformStrict $ parseCardV3 rendered
+              vcard' <- shouldConformStrict $ parseCardV4 rendered
               vcard' `shouldBe` vcard
