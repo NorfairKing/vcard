@@ -66,6 +66,14 @@ spec = do
               vcard' <- shouldConformStrict $ parseAnyCard rendered
               vcard' `shouldBe` vcard
 
+  describe "anyCardToV3" $
+    it "produces valid V3 cards" $
+      producesValid anyCardToV3
+
+  describe "anyCardToV4" $
+    it "produces valid V4 cards" $
+      producesValid anyCardToV4
+
   describe "renderVCard" $
     it "roundtrips with parseVCard" $
       forAllValid $ \vcard ->

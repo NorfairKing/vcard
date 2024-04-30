@@ -26,6 +26,10 @@ module VCard
     parseCardV4,
     parseCardV3,
 
+    -- ** Conversions
+    anyCardToV3,
+    anyCardToV4,
+
     -- *** Errors
     VCardParseError (..),
     VCardParseFixableError (..),
@@ -203,6 +207,16 @@ parseCardV4 = parseComponentFromText
 
 parseCardV3 :: Text -> ConformVCard V3.Card
 parseCardV3 = parseComponentFromText
+
+anyCardToV3 :: AnyCard -> V3.Card
+anyCardToV3 = \case
+  CardV3 v3 -> v3
+  CardV4 v4 -> V4.toV3 v4
+
+anyCardToV4 :: AnyCard -> V4.Card
+anyCardToV4 = \case
+  CardV3 v3 -> V4.fromV3 v3
+  CardV4 v4 -> v4
 
 data VCardParseError
   = TextDecodingError !TE.UnicodeException
