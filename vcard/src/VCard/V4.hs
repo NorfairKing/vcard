@@ -27,7 +27,8 @@ data Card = Card
     cardName :: !(Maybe Name),
     cardNicknames :: ![Nickname],
     cardGender :: !(Maybe Gender),
-    cardEmails :: ![Email]
+    cardEmails :: ![Email],
+    cardTelephones :: ![Telephone]
   }
   deriving (Show, Eq, Generic)
 
@@ -47,6 +48,7 @@ instance IsComponent Card where
     cardNicknames <- listOfPropertiesP componentProperties
     cardGender <- optionalPropertyP componentProperties
     cardEmails <- listOfPropertiesP componentProperties
+    cardTelephones <- listOfPropertiesP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -65,7 +67,8 @@ instance IsComponent Card where
         optionalPropertyB cardName,
         listOfPropertiesB cardNicknames,
         optionalPropertyB cardGender,
-        listOfPropertiesB cardEmails
+        listOfPropertiesB cardEmails,
+        listOfPropertiesB cardTelephones
       ]
 
 fromV3 :: V3.Card -> Card
@@ -76,7 +79,8 @@ fromV3 c =
       cardName = Just $ V3.cardName c,
       cardNicknames = V3.cardNicknames c,
       cardEmails = V3.cardEmails c,
-      cardGender = Nothing
+      cardGender = Nothing,
+      cardTelephones = V3.cardTelephones c
     }
 
 toV3 :: Card -> V3.Card
@@ -86,5 +90,6 @@ toV3 c =
       V3.cardFormattedNames = cardFormattedNames c,
       V3.cardName = fromMaybe emptyName $ cardName c,
       V3.cardNicknames = cardNicknames c,
-      V3.cardEmails = cardEmails c
+      V3.cardEmails = cardEmails c,
+      V3.cardTelephones = cardTelephones c
     }
