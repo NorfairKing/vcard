@@ -44,6 +44,7 @@ module VCard.Property
     -- **** Name
     Name (..),
     mkName,
+    emptyName,
 
     -- **** Nickname
     Nickname (..),
@@ -466,6 +467,9 @@ mkName ::
 mkName nameSurnames nameGivenNames nameAdditionalNames nameHonorificPrefixes nameHonorificSuffixes =
   let nameLanguage = Nothing
    in Name {..}
+
+emptyName :: Name
+emptyName = mkName [] [] [] [] []
 
 -- [Section 6.2.1](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.1)
 --

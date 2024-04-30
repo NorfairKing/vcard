@@ -4,6 +4,8 @@
 
 module VCard.V4
   ( Card (..),
+    fromV3,
+    toV3,
   )
 where
 
@@ -11,11 +13,13 @@ import Conformance
 import Control.DeepSeq
 import Control.Monad
 import Data.List.NonEmpty (NonEmpty (..))
+import Data.Maybe
 import Data.Proxy
 import Data.Validity
 import GHC.Generics (Generic)
 import VCard.Component.Class
 import VCard.Property
+import qualified VCard.V3 as V3
 
 data Card = Card
   { cardSources :: ![Source],
@@ -63,3 +67,24 @@ instance IsComponent Card where
         optionalPropertyB cardGender,
         listOfPropertiesB cardEmails
       ]
+
+fromV3 :: V3.Card -> Card
+fromV3 c =
+  Card
+    { cardSources = V3.cardSources c,
+      cardFormattedNames = V3.cardFormattedNames c,
+      cardName = Just $ V3.cardName c,
+      cardNicknames = V3.cardNicknames c,
+      cardEmails = V3.cardEmails c,
+      cardGender = Nothing
+    }
+
+toV3 :: Card -> V3.Card
+toV3 c =
+  V3.Card
+    { V3.cardSources = cardSources c,
+      V3.cardFormattedNames = cardFormattedNames c,
+      V3.cardName = fromMaybe emptyName $ cardName c,
+      V3.cardNicknames = cardNicknames c,
+      V3.cardEmails = cardEmails c
+    }

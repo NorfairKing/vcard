@@ -26,3 +26,21 @@ spec = do
          in context ctx $ do
               vcard' <- shouldConformStrict $ parseCardV4 rendered
               vcard' `shouldBe` vcard
+
+  describe "toV3" $ do
+    it "produces valid V3 cards" $
+      producesValid V4.toV3
+    it "roundtrips with fromV3" $
+      forAllValid $ \v3 -> do
+        let rendered = V4.fromV3 v3
+        let parsed = V4.toV3 rendered
+        parsed `shouldBe` v3
+
+  describe "fromV3" $ do
+    it "produces valid V4 cards" $
+      producesValid V4.fromV3
+    it "roundtrips with toV3 back to v3" $
+      forAllValid $ \v4 -> do
+        let rendered = V4.toV3 v4
+        let parsed = V4.fromV3 rendered
+        V4.toV3 parsed `shouldBe` rendered
