@@ -58,6 +58,15 @@ module VCard.Property
     renderSex,
 
     -- *** Communications properties
+
+    -- **** Telephone
+    Telephone (..),
+    mkTelephoneText,
+    mkTelephoneURI,
+    TextTelephone (..),
+    URITelephone (..),
+
+    -- **** Email
     Email (..),
     mkEmail,
 
@@ -93,6 +102,7 @@ data PropertyParseError
       !ContentLineName
       -- Actual
       !ContentLineName
+  | ValueMismatch !ContentLineName !ValueDataType (Maybe ValueDataType) ![ValueDataType]
   deriving (Show, Eq, Generic)
 
 instance Exception PropertyParseError where
@@ -105,6 +115,13 @@ instance Exception PropertyParseError where
           "but got",
           show actual,
           "instead."
+        ]
+    ValueMismatch name actualType mDefaultType otherTypes ->
+      unlines
+        [ unwords ["Mismatched value type for:", show name],
+          unwords ["Actual:", show actualType],
+          unwords ["Default:", maybe "none" show mDefaultType],
+          unwords ["Other options:", show otherTypes]
         ]
 
 data PropertyParseFixableError
@@ -659,9 +676,136 @@ renderSex = \case
   SexNone -> "N"
   SexUnknown -> "U"
 
+-- | Telephone
+--
+-- [RFC 6350 Section 6.4.1](https://datatracker.ietf.org/doc/html/rfc6350#section-6.4.1)
+--
+-- @
+-- Purpose:  To specify the telephone number for telephony communication
+--    with the object the vCard represents.
+--
+-- Value type:  By default, it is a single free-form text value (for
+--    backward compatibility with vCard 3), but it SHOULD be reset to a
+--    URI value.  It is expected that the URI scheme will be "tel", as
+--    specified in [RFC3966], but other schemes MAY be used.
+--
+-- Cardinality:  *
+--
+-- Special notes:  This property is based on the X.520 Telephone Number
+--    attribute [CCITT.X520.1988].
+--
+--    The property can include the "PREF" parameter to indicate a
+--    preferred-use telephone number.
+--
+--    The property can include the parameter "TYPE" to specify intended
+--    use for the telephone number.  The predefined values for the TYPE
+--    parameter are:
+--
+-- +-----------+-------------------------------------------------------+
+-- | Value     | Description                                           |
+-- +-----------+-------------------------------------------------------+
+-- | text      | Indicates that the telephone number supports text     |
+-- |           | messages (SMS).                                       |
+-- | voice     | Indicates a voice telephone number.                   |
+-- | fax       | Indicates a facsimile telephone number.               |
+-- | cell      | Indicates a cellular or mobile telephone number.      |
+-- | video     | Indicates a video conferencing telephone number.      |
+-- | pager     | Indicates a paging device telephone number.           |
+-- | textphone | Indicates a telecommunication device for people with  |
+-- |           | hearing or speech difficulties.                       |
+-- +-----------+-------------------------------------------------------+
+--
+--    The default type is "voice".  These type parameter values can be
+--    specified as a parameter list (e.g., TYPE=text;TYPE=voice) or as a
+--    value list (e.g., TYPE="text,voice").  The default can be
+--    overridden to another set of values by specifying one or more
+--    alternate values.  For example, the default TYPE of "voice" can be
+--    reset to a VOICE and FAX telephone number by the value list
+--    TYPE="voice,fax".
+--
+--    If this property's value is a URI that can also be used for
+--    instant messaging, the IMPP (Section 6.4.3) property SHOULD be
+--    used in addition to this property.
+--
+-- ABNF:
+--
+--   TEL-param = TEL-text-param / TEL-uri-param
+--   TEL-value = TEL-text-value / TEL-uri-value
+--     ; Value and parameter MUST match.
+--
+--   TEL-text-param = "VALUE=text"
+--   TEL-text-value = text
+--
+--   TEL-uri-param = "VALUE=uri" / mediatype-param
+--   TEL-uri-value = URI
+--
+--   TEL-param =/ type-param / pid-param / pref-param / altid-param
+--              / any-param
+--
+--   type-param-tel = "text" / "voice" / "fax" / "cell" / "video"
+--                  / "pager" / "textphone" / iana-token / x-name
+--     ; type-param-tel MUST NOT be used with a property other than TEL.
+--
+-- Example:
+--
+--   TEL;VALUE=uri;PREF=1;TYPE="voice,home":tel:+1-555-555-5555;ext=5555
+--   TEL;VALUE=uri;TYPE=home:tel:+33-01-23-45-67
+-- @
+data Telephone
+  = TelephoneText !TextTelephone
+  | TelephoneURI !URITelephone
+  deriving (Show, Eq, Generic)
+
+instance Validity Telephone
+
+instance NFData Telephone
+
+instance IsProperty Telephone where
+  propertyName Proxy = "TEL"
+  propertyP clv = do
+    mValueDataType <- propertyParamP clv
+    case fromMaybe defaultTelephoneType mValueDataType of
+      TypeText -> TelephoneText <$> wrapPropertyTypeP TextTelephone clv
+      TypeURI -> TelephoneURI <$> wrapPropertyTypeP URITelephone clv
+      typ -> unfixableError $ ValueMismatch "TEL" typ (Just TypeText) [TypeURI]
+
+  propertyB = \case
+    TelephoneText (TextTelephone t) -> propertyTypeB t
+    TelephoneURI (URITelephone u) -> typedPropertyTypeB u
+
+-- @
+-- By default, it is a single free-form text value
+-- @
+defaultTelephoneType :: ValueDataType
+defaultTelephoneType = TypeText
+
+mkTelephoneText :: Text -> Telephone
+mkTelephoneText textTelephoneValue = TelephoneText TextTelephone {..}
+
+mkTelephoneURI :: URI -> Telephone
+mkTelephoneURI uriTelephoneValue = TelephoneURI URITelephone {..}
+
+data TextTelephone = TextTelephone
+  { textTelephoneValue :: !Text
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity TextTelephone
+
+instance NFData TextTelephone
+
+data URITelephone = URITelephone
+  { uriTelephoneValue :: !URI
+  }
+  deriving (Show, Eq, Generic)
+
+instance Validity URITelephone
+
+instance NFData URITelephone
+
 -- | Email
 --
--- [RFC6350 Section 6.4.2](https://datatracker.ietf.org/doc/html/rfc6350#section-6.4.2)
+-- [RFC 6350 Section 6.4.2](https://datatracker.ietf.org/doc/html/rfc6350#section-6.4.2)
 --
 -- @
 -- Purpose:  To specify the electronic mail address for communication

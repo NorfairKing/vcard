@@ -407,10 +407,125 @@ spec = do
           }
       )
 
+  describe "Telephone" $ do
+    genValidSpec @Telephone
+    propertySpec @Telephone
+
+    -- [RFC 2425 Section 8.2](https://datatracker.ietf.org/doc/html/rfc2425#section-8.2)
+    --
+    -- @
+    -- tel;type=work,voice,msg:+1 313 747-4454
+    -- @
+    propertyParseExampleSpec "tel;type=work,voice,msg:+1 313 747-4454" (mkTelephoneText "+1 313 747-4454")
+    propertyRenderExampleSpec "tel:+1 313 747-4454" (mkTelephoneText "+1 313 747-4454")
+
+    -- [RFC 2425 Section 8.3](https://datatracker.ietf.org/doc/html/rfc2425#section-8.3)
+    --
+    -- @
+    -- home.tel;type=fax,voice,msg:+49 3581 123456
+    -- @
+    propertyParseExampleSpec "home.tel;type=fax,voice,msg:+49 3581 123456" (mkTelephoneText "+49 3581 123456")
+    propertyRenderExampleSpec "tel:+49 3581 123456" (mkTelephoneText "+49 3581 123456")
+
+    -- [RFC 2426 Section 3.3.1](https://datatracker.ietf.org/doc/html/rfc2426#section-3.3.1)
+    --
+    -- @
+    -- Type example:
+    --
+    --      TEL;TYPE=work,voice,pref,msg:+1-213-555-1234
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=work,voice,pref,msg:+1-213-555-1234" (mkTelephoneText "+1-213-555-1234")
+    propertyRenderExampleSpec "TEL:+1-213-555-1234" (mkTelephoneText "+1-213-555-1234")
+
+    -- [RFC 2426 Section 7](https://datatracker.ietf.org/doc/html/rfc2426#section-7)
+    --
+    -- @
+    -- TEL;TYPE=VOICE,MSG,WORK:+1-919-676-9515
+    -- TEL;TYPE=FAX,WORK:+1-919-676-9564
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=VOICE,MSG,WORK:+1-919-676-9515" (mkTelephoneText "+1-919-676-9515")
+    propertyRenderExampleSpec "TEL:+1-919-676-9515" (mkTelephoneText "+1-919-676-9515")
+    propertyParseExampleSpec "TEL;TYPE=FAX,WORK:+1-919-676-9564" (mkTelephoneText "+1-919-676-9564")
+    propertyRenderExampleSpec "TEL:+1-919-676-9564" (mkTelephoneText "+1-919-676-9564")
+    -- @
+    -- TEL;TYPE=VOICE,MSG,WORK:+1-415-937-3419
+    -- TEL;TYPE=FAX,WORK:+1-415-528-4164
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=VOICE,MSG,WORK:+1-415-937-3419" (mkTelephoneText "+1-415-937-3419")
+    propertyRenderExampleSpec "TEL:+1-415-937-3419" (mkTelephoneText "+1-415-937-3419")
+    propertyParseExampleSpec "TEL;TYPE=FAX,WORK:+1-415-528-4164" (mkTelephoneText "+1-415-528-4164")
+    propertyRenderExampleSpec "TEL:+1-415-528-4164" (mkTelephoneText "+1-415-528-4164")
+
+    -- [RFC 2739 Section 2.3](https://datatracker.ietf.org/doc/html/rfc2739#section-2.3)
+    --
+    -- @
+    -- TEL;WORK;MSG:+1-206-936-4544
+    -- TEL;WORK;FAX:+1-206-936-7329
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=WORK,MSG:+1-206-936-4544" (mkTelephoneText "+1-206-936-4544")
+    propertyRenderExampleSpec "TEL:+1-206-936-4544" (mkTelephoneText "+1-206-936-4544")
+    propertyParseExampleSpec "TEL;TYPE=WORK,FAX:+1-206-936-7329" (mkTelephoneText "+1-206-936-7329")
+    propertyRenderExampleSpec "TEL:+1-206-936-7329" (mkTelephoneText "+1-206-936-7329")
+
+    -- [RFC 2739 Section 6](https://datatracker.ietf.org/doc/html/rfc2739#section-6)
+    --
+    -- @
+    -- TEL;TYPE=WORK,MSG:+1-206-937-9972
+    -- TEL;TYPE=WORK,FAX:+1-206-936-7329
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=WORK,MSG:+1-206-937-9972" (mkTelephoneText "+1-206-937-9972")
+    propertyRenderExampleSpec "TEL:+1-206-937-9972" (mkTelephoneText "+1-206-937-9972")
+    propertyParseExampleSpec "TEL;TYPE=WORK,FAX:+1-206-936-7329" (mkTelephoneText "+1-206-936-7329")
+    propertyRenderExampleSpec "TEL:+1-206-936-7329" (mkTelephoneText "+1-206-936-7329")
+    -- @
+    -- TEL;TYPE=WORK,PREF:+1-617-693-8728
+    -- TEL;TYPE=WORK,MSG:+1-919-676-9515
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=WORK,PREF:+1-617-693-8728" (mkTelephoneText "+1-617-693-8728")
+    propertyRenderExampleSpec "TEL:+1-617-693-8728" (mkTelephoneText "+1-617-693-8728")
+    propertyParseExampleSpec "TEL;TYPE=WORK,MSG:+1-919-676-9515" (mkTelephoneText "+1-919-676-9515")
+    propertyRenderExampleSpec "TEL:+1-919-676-9515" (mkTelephoneText "+1-919-676-9515")
+    -- @
+    -- TEL;TYPE=FAX:+1-617-693-8728
+    -- TEL;TYPE=WORK,VOICE:423.875.2652
+    -- TEL;TYPE=WORK,FAX:423.875.2017
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=FAX:+1-617-693-8728" (mkTelephoneText "+1-617-693-8728")
+    propertyRenderExampleSpec "TEL:+1-617-693-8728" (mkTelephoneText "+1-617-693-8728")
+    propertyParseExampleSpec "TEL;TYPE=WORK,VOICE:423.875.2652" (mkTelephoneText "423.875.2652")
+    propertyRenderExampleSpec "TEL:423.875.2652" (mkTelephoneText "423.875.2652")
+    propertyParseExampleSpec "TEL;TYPE=WORK,FAX:423.875.2017" (mkTelephoneText "423.875.2017")
+    propertyRenderExampleSpec "TEL:423.875.2017" (mkTelephoneText "423.875.2017")
+
+    -- [RFC 6350 Section 6.4.1](https://datatracker.ietf.org/doc/html/rfc6350#section-6.4.1)
+    --
+    -- @
+    -- Example:
+    --
+    --   TEL;VALUE=uri;PREF=1;TYPE="voice,home":tel:+1-555-555-5555;ext=5555
+    --   TEL;VALUE=uri;TYPE=home:tel:+33-01-23-45-67
+    -- @
+    propertyParseExampleSpec "TEL;VALUE=uri;PREF=1;TYPE=\"voice,home\":tel:+1-555-555-5555;ext=5555" (mkTelephoneURI "tel:+1-555-555-5555;ext=5555")
+    propertyRenderExampleSpec "TEL;VALUE=uri:tel:+1-555-555-5555;ext=5555" (mkTelephoneURI "tel:+1-555-555-5555;ext=5555")
+    propertyParseExampleSpec "TEL;VALUE=uri;TYPE=home:tel:+33-01-23-45-67" (mkTelephoneURI "tel:+33-01-23-45-67")
+    propertyRenderExampleSpec "TEL;VALUE=uri:tel:+33-01-23-45-67" (mkTelephoneURI "tel:+33-01-23-45-67")
+
+    -- [RFC 6352 Section 6.3.2](https://datatracker.ietf.org/doc/html/rfc6352#section-6.3.2)
+    --
+    -- @
+    -- TEL;TYPE=WORK,VOICE:412 605 0499
+    -- TEL;TYPE=FAX:412 605 0705
+    -- @
+    propertyParseExampleSpec "TEL;TYPE=WORK,VOICE:412 605 0499" (mkTelephoneText "412 605 0499")
+    propertyRenderExampleSpec "TEL:412 605 0499" (mkTelephoneText "412 605 0499")
+    propertyParseExampleSpec "TEL;TYPE=FAX:412 605 0705" (mkTelephoneText "412 605 0705")
+    propertyRenderExampleSpec "TEL:412 605 0705" (mkTelephoneText "412 605 0705")
+
   describe "Email" $ do
     genValidSpec @Email
     propertySpec @Email
-    -- [RFC2425 Section 8.1](https://datatracker.ietf.org/doc/html/rfc2425#section-8.1)
+
+    -- [RFC 2425 Section 8.1](https://datatracker.ietf.org/doc/html/rfc2425#section-8.1)
     --
     -- @
     -- email:babs@umich.edu
