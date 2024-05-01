@@ -21,9 +21,9 @@ module VCard.PropertyType.Class
     splitOnCommas,
     splitOnSemicolons,
     splitOnSemicolonsThenCommas,
-    reassembleWithCommas,
-    reassembleWithSemicolons,
-    reassembleWithCommasThenSemicolons,
+    assembleWithCommas,
+    assembleWithSemicolons,
+    assembleWithCommasThenSemicolons,
 
     -- ** Builders
     typedPropertyTypeB,
@@ -370,21 +370,20 @@ propertyTypeListP clv =
 -- in reassembleWithCommasThenSemicolons, don't reuse "reassembleWithCommas"
 -- because they also need to escape backslashes.
 splitOnSemicolonsThenCommas :: Text -> [[Text]]
-splitOnSemicolonsThenCommas =
-  map (map (unescape '\\') . splitOnCommas) . splitOnSemicolons
+splitOnSemicolonsThenCommas = map (map unEscapeText . splitOnUnescaped ',') . splitOnUnescaped ';'
 
 -- Split on commas, but not escaped commas.
 splitOnCommas :: Text -> [Text]
-splitOnCommas = splitOnUnescaped ','
+splitOnCommas = map unEscapeText . splitOnUnescaped ','
 
 -- Split on semicolons, but not escaped semicolons.
 splitOnSemicolons :: Text -> [Text]
-splitOnSemicolons = splitOnUnescaped ';'
+splitOnSemicolons = map unEscapeText . splitOnUnescaped ';'
 
 splitOnUnescaped :: Char -> Text -> [Text]
 splitOnUnescaped s = \case
   "" -> []
-  t -> map (unescape s . T.pack) $ go [] $ T.unpack t
+  t -> map T.pack $ go [] $ T.unpack t
     where
       go :: String -> String -> [String]
       go acc = \case
@@ -395,35 +394,17 @@ splitOnUnescaped s = \case
           | c == s -> reverse acc : go [] rest
           | otherwise -> go (c : acc) rest
 
-reassembleWithCommasThenSemicolons :: [[Text]] -> Text
-reassembleWithCommasThenSemicolons =
-  reassembleWithSemicolons . map (reassembleWithCommas . map (escape '\\'))
+assembleWithCommasThenSemicolons :: [[Text]] -> Text
+assembleWithCommasThenSemicolons = T.intercalate ";" . map (T.intercalate "," . map escapeText)
 
-reassembleWithCommas :: [Text] -> Text
-reassembleWithCommas = T.intercalate "," . map (escape ',')
+assembleWithCommas :: [Text] -> Text
+assembleWithCommas = assembleWith ','
 
-reassembleWithSemicolons :: [Text] -> Text
-reassembleWithSemicolons = T.intercalate ";" . map (escape ';')
+assembleWithSemicolons :: [Text] -> Text
+assembleWithSemicolons = assembleWith ';'
 
-unescape :: Char -> Text -> Text
-unescape s = T.pack . go . T.unpack
-  where
-    go = \case
-      [] -> []
-      -- Don't unescape backslashes here
-      '\\' : '\\' : rest | s /= '\\' -> '\\' : '\\' : go rest
-      '\\' : c : rest
-        | c == s -> c : go rest
-        | otherwise -> '\\' : go (c : rest)
-      c : rest -> c : go rest
-
-escape :: Char -> Text -> Text
-escape s = T.pack . concatMap go . T.unpack
-  where
-    go :: Char -> String
-    go c
-      | c == s = ['\\', c]
-      | otherwise = [c]
+assembleWith :: Char -> [Text] -> Text
+assembleWith c = T.intercalate (T.singleton c) . map escapeText
 
 propertyTypeListB :: (IsPropertyType propertyType) => [propertyType] -> ContentLineValue
 propertyTypeListB = \case

@@ -473,7 +473,7 @@ instance IsProperty Name where
   propertyB Name {..} =
     insertMParam nameLanguage $
       mkSimpleContentLineValue $
-        reassembleWithCommasThenSemicolons
+        assembleWithCommasThenSemicolons
           [ nameSurnames,
             nameGivenNames,
             nameAdditionalNames,
@@ -640,7 +640,7 @@ instance IsProperty Gender where
         pure Gender {..}
   propertyB Gender {..} =
     mkSimpleContentLineValue $
-      reassembleWithSemicolons $
+      assembleWithSemicolons $
         concat
           [ [maybe "" renderSex genderSex],
             maybeToList genderIdentity

@@ -8,7 +8,6 @@ module VCard.PropertyTypeSpec where
 import Data.GenValidity.Text
 import Data.Int
 import Data.Text (Text)
-import qualified Data.Text as T
 import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
@@ -24,7 +23,9 @@ spec = do
       (mkSimpleContentLineValue "Project XYZ Final Review\\nConference Room - 3B\\nCome Prepared.")
       ("Project XYZ Final Review\nConference Room - 3B\nCome Prepared." :: Text)
 
-  let fancyCharacters = genTextBy $ elements ['\n', 'r', '\t', ' ', ';', ',', '\\']
+  let annoyingText = genTextBy $ oneof [elements ['\n', 'r', '\t', ' ', ';', ',', '\\'], genValid]
+  let forAllAnnoying :: (Testable prop) => (Text -> prop) -> Property
+      forAllAnnoying = forAllShrink annoyingText shrinkValid
   describe "escapeText" $ do
     it "escapes this diverse example correctly" $
       escapeText "hello world\n\\,;," `shouldBe` "hello world\\n\\\\\\,\\;\\,"
@@ -38,47 +39,60 @@ spec = do
         unEscapeText (escapeText text) `shouldBe` text
 
     it "roundtrips with escapeText for fancy characters" $
-      forAll fancyCharacters $ \text ->
+      forAllAnnoying $ \text ->
         unEscapeText (escapeText text) `shouldBe` text
 
-  let annoyingText =
-        T.concat
-          <$> genListOf
-            ( oneof
-                [ pure "\\",
-                  pure ",",
-                  pure ";",
-                  genValid
-                ]
-            )
+  describe "assembleWithCommas" $ do
+    let e l t =
+          it (unwords ["can assemble", show l, "to", show t]) $
+            assembleWithCommas l `shouldBe` t
+
+    e [] ""
+    e [""] ""
+    e ["a"] "a"
+    e ["a", "b"] "a,b"
+    e [","] "\\,"
+    e ["\n"] "\\n"
+
   describe "splitOnCommas" $ do
-    it "roundtrips with reassembleWithCommas" $
-      forAllValid $ \t ->
-        reassembleWithCommas (splitOnCommas t)
-          `shouldBe` t
-    it "roundtrips with reassembleWithCommas for annoying text" $
-      forAll annoyingText $ \t ->
-        reassembleWithCommas (splitOnCommas t) `shouldBe` t
+    let e t l =
+          it (unwords ["can split", show t, "into", show l]) $
+            splitOnCommas t `shouldBe` l
+
+    e "" []
+    e "a" ["a"]
+    e "a,b" ["a", "b"]
+    e "\\," [","]
+    e "\\n" ["\n"]
+
+    it "roundtrips with assembleWithCommas starting with assembling" $
+      forAll (genValid `suchThat` (/= [""])) $ \l -> do
+        let rendered = assembleWithCommas l
+        context (show rendered) $ splitOnCommas rendered `shouldBe` l
+    it "roundtrips with assembleWithCommas for annoying lists of text" $
+      forAll (genListOf annoyingText `suchThat` (/= [""])) $ \l -> do
+        let rendered = assembleWithCommas l
+        context (show rendered) $ splitOnCommas rendered `shouldBe` l
 
   describe "splitOnSemicolons" $ do
-    it "roundtrips with reassembleWithSemicolons" $
-      forAllValid $ \t ->
-        reassembleWithSemicolons (splitOnSemicolons t)
-          `shouldBe` t
-    it "roundtrips with reassembleWithSemicolons for annoying text" $
-      forAll annoyingText $ \t ->
-        reassembleWithSemicolons (splitOnSemicolons t) `shouldBe` t
+    it "roundtrips with assembleWithSemicolons starting with assembling" $
+      forAll (genValid `suchThat` (/= [""])) $ \l -> do
+        let rendered = assembleWithSemicolons l
+        context (show rendered) $ splitOnSemicolons rendered `shouldBe` l
+    it "roundtrips with assembleWithSemicolons for annoying lists of text" $
+      forAll (genListOf annoyingText `suchThat` (/= [""])) $ \l -> do
+        let rendered = assembleWithSemicolons l
+        context (show rendered) $ splitOnSemicolons rendered `shouldBe` l
 
   describe "splitOnSemicolonsThenCommas" $ do
-    it "roundtrips with reassembleWithCommasThenSemicolons" $
-      forAllValid $ \t ->
-        reassembleWithCommasThenSemicolons (splitOnSemicolonsThenCommas t)
-          `shouldBe` t
-    it "roundtrips with reassembleWithCommasThenSemicolons for annoying text" $
-      forAll annoyingText $ \t -> do
-        let split = splitOnSemicolonsThenCommas t
-        context (show split) $
-          reassembleWithCommasThenSemicolons split `shouldBe` t
+    it "roundtrips with assembleWithCommasThenSemicolons" $
+      forAll (genValid `suchThat` (\l -> l /= [[]] && notElem [""] l)) $ \l -> do
+        let rendered = assembleWithCommasThenSemicolons l
+        context (show rendered) $ splitOnSemicolonsThenCommas rendered `shouldBe` l
+    it "roundtrips with assembleWithCommasThenSemicolons for annoying text" $
+      forAll (genListOf (genListOf annoyingText) `suchThat` (\l -> l /= [[]] && notElem [""] l)) $ \l -> do
+        let rendered = assembleWithCommasThenSemicolons l
+        context (show rendered) $ splitOnSemicolonsThenCommas rendered `shouldBe` l
 
   describe "URI" $ do
     genValidSpec @URI
