@@ -188,10 +188,14 @@ spec = do
   describe "Name" $ do
     genValidSpec @Name
     propertySpec @Name
+    genValidSpec @NameV3
+    propertySpec @NameV3
 
     propertyExampleSpec "N:Foo,Bar;;;;" (mkName ["Foo", "Bar"] [] [] [] [])
     propertyExampleSpec "N:Foo\\;Bar;;;;" (mkName ["Foo;Bar"] [] [] [] [])
     propertyExampleSpec "N:Foo\\\\Bar;;;;" (mkName ["Foo\\Bar"] [] [] [] [])
+    propertyExampleSpec "N:Foo,Bar" (NameV3 (mkName ["Foo", "Bar"] [] [] [] []))
+    propertyExampleSpec "N:;Foo,Bar" (NameV3 (mkName [] ["Foo", "Bar"] [] [] []))
 
     -- [RFC 2425 Section 8.2](https://datatracker.ietf.org/doc/html/rfc2425#section-8.2)
     --

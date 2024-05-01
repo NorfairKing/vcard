@@ -48,6 +48,10 @@ instance GenValid Name where
     nameLanguage <- genValid
     pure Name {..}
 
+instance GenValid NameV3 where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 instance GenValid Nickname where
   genValid = do
     nicknameValues <- genNonemptyTexts

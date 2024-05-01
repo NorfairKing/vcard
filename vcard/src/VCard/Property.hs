@@ -45,6 +45,7 @@ module VCard.Property
     Name (..),
     mkName,
     emptyName,
+    NameV3 (..),
 
     -- **** Nickname
     Nickname (..),
@@ -480,6 +481,38 @@ instance IsProperty Name where
             nameHonorificPrefixes,
             nameHonorificSuffixes
           ]
+
+-- VERSION:3.0 has different name parsing: the name having fewer than 5 components is valid in version 3, so we use this newtype to parse it correctly for version 3 too.
+newtype NameV3 = NameV3 {unNameV3 :: Name}
+  deriving (Show, Eq, Generic)
+
+instance Validity NameV3
+
+instance IsProperty NameV3 where
+  propertyName Proxy = "N"
+  propertyP clv = do
+    nameLanguage <- propertyParamP clv
+    let namess = splitOnSemicolonsThenCommas (contentLineValueRaw clv)
+
+    let (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) = case namess of
+          (n1 : n2 : n3 : n4 : n5 : _) -> (n1, n2, n3, n4, n5)
+          (n1 : n2 : n3 : n4 : _) -> (n1, n2, n3, n4, [])
+          (n1 : n2 : n3 : _) -> (n1, n2, n3, [], [])
+          (n1 : n2 : _) -> (n1, n2, [], [], [])
+          (n1 : _) -> (n1, [], [], [], [])
+          [] -> ([], [], [], [], [])
+    pure $ NameV3 Name {..}
+
+  propertyB (NameV3 Name {..}) =
+    insertMParam nameLanguage $
+      mkSimpleContentLineValue $
+        assembleWithCommasThenSemicolons $ case (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) of
+          ([], [], [], [], []) -> []
+          (n1, [], [], [], []) -> [n1]
+          (n1, n2, [], [], []) -> [n1, n2]
+          (n1, n2, n3, [], []) -> [n1, n2, n3]
+          (n1, n2, n3, n4, []) -> [n1, n2, n3, n4]
+          (n1, n2, n3, n4, n5) -> [n1, n2, n3, n4, n5]
 
 mkName ::
   [Text] ->

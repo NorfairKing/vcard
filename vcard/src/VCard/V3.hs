@@ -40,7 +40,7 @@ instance IsComponent Card where
 
     cardSources <- listOfPropertiesP componentProperties
     cardFormattedNames <- nonemptyListOfPropertiesP componentProperties
-    cardName <- requiredPropertyP componentProperties
+    cardName <- unNameV3 <$> requiredPropertyP componentProperties
     cardNicknames <- listOfPropertiesP componentProperties
     cardEmails <- listOfPropertiesP componentProperties
     cardTelephones <- listOfPropertiesP componentProperties
@@ -63,7 +63,7 @@ instance IsComponent Card where
         requiredPropertyB (Version "3.0"),
         listOfPropertiesB cardSources,
         nonemptyListOfPropertiesB cardFormattedNames,
-        requiredPropertyB cardName,
+        requiredPropertyB (NameV3 cardName),
         listOfPropertiesB cardNicknames,
         listOfPropertiesB cardEmails,
         listOfPropertiesB cardTelephones,
