@@ -56,6 +56,7 @@ instance GenValid Nickname where
   genValid = do
     nicknameValues <- genNonemptyTexts
     nicknameLanguage <- genValid
+    nicknamePreference <- genValid
     pure Nickname {..}
 
 instance GenValid Sex where

@@ -325,7 +325,10 @@ instance IsProperty End where
 --   SOURCE:http://directory.example.com/addressbooks/jdoe/
 --    Jean%20Dupont.vcf
 -- @
-data Source = Source {sourceValue :: URI}
+data Source = Source
+  { sourceValue :: URI,
+    sourcePreference :: !(Maybe Preference)
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity Source
@@ -334,12 +337,17 @@ instance NFData Source
 
 instance IsProperty Source where
   propertyName Proxy = "SOURCE"
-  propertyP = wrapPropertyTypeP Source
-  propertyB = propertyTypeB . sourceValue
+  propertyP clv = do
+    sourcePreference <- propertyParamP clv
+    wrapPropertyTypeP (\sourceValue -> Source {..}) clv
+  propertyB Source {..} =
+    insertMParam sourcePreference $
+      propertyTypeB sourceValue
 
 mkSource :: URI -> Source
 mkSource sourceValue =
-  Source {..}
+  let sourcePreference = Nothing
+   in Source {..}
 
 -- [Section 6.2.1](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.1)
 --
@@ -367,7 +375,8 @@ mkSource sourceValue =
 -- @
 data FormattedName = FormattedName
   { formattedNameValue :: Text,
-    formattedNameLanguage :: !(Maybe Language)
+    formattedNameLanguage :: !(Maybe Language),
+    formattedNamePreference :: !(Maybe Preference)
   }
   deriving (Show, Eq, Generic)
 
@@ -379,14 +388,17 @@ instance IsProperty FormattedName where
   propertyName Proxy = "FN"
   propertyP clv = do
     formattedNameLanguage <- propertyParamP clv
+    formattedNamePreference <- propertyParamP clv
     wrapPropertyTypeP (\formattedNameValue -> FormattedName {..}) clv
   propertyB FormattedName {..} =
     insertMParam formattedNameLanguage $
-      propertyTypeB formattedNameValue
+      insertMParam formattedNamePreference $
+        propertyTypeB formattedNameValue
 
 mkFormattedName :: Text -> FormattedName
 mkFormattedName formattedNameValue =
   let formattedNameLanguage = Nothing
+      formattedNamePreference = Nothing
    in FormattedName {..}
 
 -- [Section 6.2.2](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.2)
@@ -560,7 +572,8 @@ emptyName = mkName [] [] [] [] []
 -- @
 data Nickname = Nickname
   { nicknameValues :: [Text],
-    nicknameLanguage :: !(Maybe Language)
+    nicknameLanguage :: !(Maybe Language),
+    nicknamePreference :: !(Maybe Preference)
   }
   deriving (Show, Eq, Generic)
 
@@ -578,18 +591,19 @@ instance IsProperty Nickname where
   propertyName Proxy = "NICKNAME"
   propertyP clv = do
     nicknameLanguage <- propertyParamP clv
+    nicknamePreference <- propertyParamP clv
     viaPropertyTypeListP
-      ( \nicknameValues ->
-          pure Nickname {..}
-      )
+      (\nicknameValues -> pure Nickname {..})
       clv
   propertyB Nickname {..} =
     insertMParam nicknameLanguage $
-      propertyTypeListB nicknameValues
+      insertMParam nicknamePreference $
+        propertyTypeListB nicknameValues
 
 mkNickname :: [Text] -> Nickname
 mkNickname nicknameValues =
   let nicknameLanguage = Nothing
+      nicknamePreference = Nothing
    in Nickname {..}
 
 -- [RFC 6350 Section 6.2.7](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.7)
@@ -804,13 +818,21 @@ instance IsProperty Telephone where
   propertyP clv = do
     mValueDataType <- propertyParamP clv
     case fromMaybe defaultTelephoneType mValueDataType of
-      TypeText -> TelephoneText <$> wrapPropertyTypeP TextTelephone clv
-      TypeURI -> TelephoneURI <$> wrapPropertyTypeP URITelephone clv
+      TypeText -> do
+        textTelephonePreference <- propertyParamP clv
+        TelephoneText <$> wrapPropertyTypeP (\textTelephoneValue -> TextTelephone {..}) clv
+      TypeURI -> do
+        uriTelephonePreference <- propertyParamP clv
+        TelephoneURI <$> wrapPropertyTypeP (\uriTelephoneValue -> URITelephone {..}) clv
       typ -> unfixableError $ ValueMismatch "TEL" typ (Just TypeText) [TypeURI]
 
   propertyB = \case
-    TelephoneText (TextTelephone t) -> propertyTypeB t
-    TelephoneURI (URITelephone u) -> typedPropertyTypeB u
+    TelephoneText TextTelephone {..} ->
+      insertMParam textTelephonePreference $
+        propertyTypeB textTelephoneValue
+    TelephoneURI URITelephone {..} ->
+      insertMParam uriTelephonePreference $
+        typedPropertyTypeB uriTelephoneValue
 
 -- @
 -- By default, it is a single free-form text value
@@ -819,13 +841,18 @@ defaultTelephoneType :: ValueDataType
 defaultTelephoneType = TypeText
 
 mkTelephoneText :: Text -> Telephone
-mkTelephoneText textTelephoneValue = TelephoneText TextTelephone {..}
+mkTelephoneText textTelephoneValue =
+  let textTelephonePreference = Nothing
+   in TelephoneText TextTelephone {..}
 
 mkTelephoneURI :: URI -> Telephone
-mkTelephoneURI uriTelephoneValue = TelephoneURI URITelephone {..}
+mkTelephoneURI uriTelephoneValue =
+  let uriTelephonePreference = Nothing
+   in TelephoneURI URITelephone {..}
 
 data TextTelephone = TextTelephone
-  { textTelephoneValue :: !Text
+  { textTelephoneValue :: !Text,
+    textTelephonePreference :: !(Maybe Preference)
   }
   deriving (Show, Eq, Generic)
 
@@ -834,7 +861,8 @@ instance Validity TextTelephone
 instance NFData TextTelephone
 
 data URITelephone = URITelephone
-  { uriTelephoneValue :: !URI
+  { uriTelephoneValue :: !URI,
+    uriTelephonePreference :: !(Maybe Preference)
   }
   deriving (Show, Eq, Generic)
 
@@ -877,7 +905,8 @@ instance NFData URITelephone
 --         EMAIL;PREF=1:jane_doe@example.com
 -- @
 data Email = Email
-  { emailValue :: !Text
+  { emailValue :: !Text,
+    emailPreference :: !(Maybe Preference)
   }
   deriving (Show, Eq, Generic)
 
@@ -887,12 +916,17 @@ instance NFData Email
 
 instance IsProperty Email where
   propertyName Proxy = "EMAIL"
-  propertyP = wrapPropertyTypeP Email
-  propertyB = propertyTypeB . emailValue
+  propertyP clv = do
+    emailPreference <- propertyParamP clv
+    wrapPropertyTypeP (\emailValue -> Email {..}) clv
+  propertyB Email {..} =
+    insertMParam emailPreference $
+      propertyTypeB emailValue
 
 mkEmail :: Text -> Email
 mkEmail emailValue =
-  Email {..}
+  let emailPreference = Nothing
+   in Email {..}
 
 -- [RFC 6350 Section 6.7.6](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.6)
 --

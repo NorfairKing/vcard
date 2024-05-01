@@ -7,6 +7,7 @@ module VCard.PropertySpec where
 
 import Test.Syd
 import Test.Syd.Validity hiding (Location)
+import VCard.Parameter
 import VCard.Property
 import VCard.Property.Gen
 
@@ -513,8 +514,22 @@ spec = do
     --   TEL;VALUE=uri;PREF=1;TYPE="voice,home":tel:+1-555-555-5555;ext=5555
     --   TEL;VALUE=uri;TYPE=home:tel:+33-01-23-45-67
     -- @
-    propertyParseExampleSpec "TEL;VALUE=uri;PREF=1;TYPE=\"voice,home\":tel:+1-555-555-5555;ext=5555" (mkTelephoneURI "tel:+1-555-555-5555;ext=5555")
-    propertyRenderExampleSpec "TEL;VALUE=uri:tel:+1-555-555-5555;ext=5555" (mkTelephoneURI "tel:+1-555-555-5555;ext=5555")
+    propertyParseExampleSpec
+      "TEL;VALUE=uri;PREF=1;TYPE=\"voice,home\":tel:+1-555-555-5555;ext=5555"
+      ( TelephoneURI
+          URITelephone
+            { uriTelephoneValue = "tel:+1-555-555-5555;ext=5555",
+              uriTelephonePreference = Just (Preference 1)
+            }
+      )
+    propertyRenderExampleSpec
+      "TEL;VALUE=uri;PREF=1:tel:+1-555-555-5555;ext=5555"
+      ( TelephoneURI
+          URITelephone
+            { uriTelephoneValue = "tel:+1-555-555-5555;ext=5555",
+              uriTelephonePreference = Just (Preference 1)
+            }
+      )
     propertyParseExampleSpec "TEL;VALUE=uri;TYPE=home:tel:+33-01-23-45-67" (mkTelephoneURI "tel:+33-01-23-45-67")
     propertyRenderExampleSpec "TEL;VALUE=uri:tel:+33-01-23-45-67" (mkTelephoneURI "tel:+33-01-23-45-67")
 
@@ -592,8 +607,12 @@ spec = do
     -- @
     propertyParseExampleSpec "EMAIL;TYPE=work:jqpublic@xyz.example.com" (mkEmail "jqpublic@xyz.example.com")
     propertyRenderExampleSpec "EMAIL:jqpublic@xyz.example.com" (mkEmail "jqpublic@xyz.example.com")
-    propertyParseExampleSpec "EMAIL;PREF=1:jane_doe@example.com" (mkEmail "jane_doe@example.com")
-    propertyRenderExampleSpec "EMAIL:jane_doe@example.com" (mkEmail "jane_doe@example.com")
+    propertyExampleSpec
+      "EMAIL;PREF=1:jane_doe@example.com"
+      ( (mkEmail "jane_doe@example.com")
+          { emailPreference = Just (Preference 1)
+          }
+      )
 
   describe "UID" $ do
     describe "TextUID" $ do

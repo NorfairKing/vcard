@@ -9,6 +9,7 @@ import Conformance.TestUtils
 import Data.GenValidity
 import Data.GenValidity.Text ()
 import GHC.Stack (HasCallStack, withFrozenCallStack)
+import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
 import VCard.ContentLine
@@ -18,6 +19,9 @@ import VCard.Parameter
 instance GenValid Language where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid Preference where
+  genValid = Preference <$> choose (1, 100)
 
 parameterExampleSpec ::
   (Show parameter, Eq parameter, IsParameter parameter, HasCallStack) =>

@@ -57,8 +57,8 @@ TODO
   - [ ] 4.8.  LANGUAGE-TAG
 - [ ] 5.  Property Parameters 
   - [X] 5.1.  LANGUAGE
-  - [ ] 5.2.  VALUE 
-  - [ ] 5.3.  PREF
+  - [X] 5.2.  VALUE 
+  - [X] 5.3.  PREF
   - [ ] 5.4.  ALTID 
   - [ ] 5.5.  PID 
   - [ ] 5.6.  TYPE
@@ -85,7 +85,7 @@ TODO
   - [ ] 6.3.  Delivery Addressing Properties
     - [ ] 6.3.1.  ADR 
   - [ ] 6.4.  Communications Properties 
-    - [ ] 6.4.1.  TEL 
+    - [X] 6.4.1.  TEL 
     - [X] 6.4.2.  EMAIL 
     - [ ] 6.4.3.  IMPP
     - [ ] 6.4.4.  LANG

@@ -70,3 +70,37 @@ spec = do
     -- title;language=de;value=text:Burgermeister
     -- @
     parameterExampleSpec "de" (Language "de")
+
+  describe "Preference" $ do
+    genValidSpec @Preference
+    parameterSpec @Preference
+
+    parameterExampleSpec "100" (Preference 100)
+
+    -- [RFC 6350 Section 6.4.1](https://datatracker.ietf.org/doc/html/rfc2425#section-6.4.1)
+    -- and
+    -- [RFC 6350 Section 6.4.2](https://datatracker.ietf.org/doc/html/rfc2425#section-6.4.2)
+    -- and
+    -- [RFC 6350 Section 6.4.3](https://datatracker.ietf.org/doc/html/rfc2425#section-6.4.3)
+    -- and
+    -- [RFC 6350 Section 6.4.4](https://datatracker.ietf.org/doc/html/rfc2425#section-6.4.4)
+    -- and
+    -- [RFC 6350 Section 6.9.1](https://datatracker.ietf.org/doc/html/rfc2425#section-6.9.1)
+    -- and
+    -- [RFC 6350 Section 6.9.2](https://datatracker.ietf.org/doc/html/rfc2425#section-6.9.2)
+    -- and
+    -- [RFC 6350 Section 6.9.3](https://datatracker.ietf.org/doc/html/rfc2425#section-6.9.3)
+    --
+    -- @
+    -- PREF=1
+    -- @
+    parameterExampleSpec "1" (Preference 1)
+
+    -- [RFC 6350 Section 6.4.4](https://datatracker.ietf.org/doc/html/rfc2425#section-6.4.4)
+    -- and
+    -- [RFC 6350 Section 8](https://datatracker.ietf.org/doc/html/rfc2425#section-8)
+    --
+    -- @
+    -- PREF=2
+    -- @
+    parameterExampleSpec "2" (Preference 2)
