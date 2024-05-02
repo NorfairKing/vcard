@@ -45,6 +45,7 @@ module VCard.Property
     Name (..),
     mkName,
     emptyName,
+    formatName,
     NameV3 (..),
 
     -- **** Nickname
@@ -493,6 +494,18 @@ instance IsProperty Name where
             nameHonorificPrefixes,
             nameHonorificSuffixes
           ]
+
+formatName :: Name -> Text
+formatName Name {..} =
+  T.unwords $
+    map
+      T.unwords
+      [ nameHonorificSuffixes,
+        nameGivenNames,
+        nameAdditionalNames,
+        nameSurnames,
+        nameHonorificSuffixes
+      ]
 
 -- VERSION:3.0 has different name parsing: the name having fewer than 5 components is valid in version 3, so we use this newtype to parse it correctly for version 3 too.
 newtype NameV3 = NameV3 {unNameV3 :: Name}
