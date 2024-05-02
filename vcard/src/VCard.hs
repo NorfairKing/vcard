@@ -45,7 +45,12 @@ module VCard
     runConform,
     runConformLenient,
     runConformFlexible,
+
+    -- ** Re-exports
     module VCard,
+    module VCard.Parameter,
+    module VCard.PropertyType,
+    module VCard.Property,
     module VCard.UnfoldedLine,
   )
 where
@@ -71,7 +76,9 @@ import Data.Void
 import GHC.Generics (Generic)
 import VCard.Component
 import VCard.ContentLine
+import VCard.Parameter
 import VCard.Property
+import VCard.PropertyType
 import VCard.UnfoldedLine
 import VCard.V3 as V3
 import VCard.V4 as V4
