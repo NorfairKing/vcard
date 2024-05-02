@@ -26,3 +26,18 @@ spec = do
          in context ctx $ do
               vcard' <- shouldConformStrict $ parseCardV3 rendered
               vcard' `shouldBe` vcard
+
+  describe "mergeCards" $ do
+    it "produces valid cards" $
+      producesValid2 mergeCards
+
+    it "does nothing when merging with itself twice" $
+      forAllValid $ \c -> do
+        let mergedOnce = mergeCards c c
+        mergeCards mergedOnce c `shouldBe` mergedOnce
+
+    it "is idempotent" $
+      forAllValid $ \c1 ->
+        forAllValid $ \c2 -> do
+          let mergedOnce = mergeCards c1 c2
+          mergeCards mergedOnce c2 `shouldBe` mergedOnce

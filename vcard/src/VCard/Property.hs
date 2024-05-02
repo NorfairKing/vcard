@@ -379,7 +379,7 @@ data FormattedName = FormattedName
     formattedNameLanguage :: !(Maybe Language),
     formattedNamePreference :: !(Maybe Preference)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity FormattedName
 
@@ -588,7 +588,7 @@ data Nickname = Nickname
     nicknameLanguage :: !(Maybe Language),
     nicknamePreference :: !(Maybe Preference)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity Nickname where
   validate nn@Nickname {..} =
@@ -820,7 +820,7 @@ renderSex = \case
 data Telephone
   = TelephoneText !TextTelephone
   | TelephoneURI !URITelephone
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity Telephone
 
@@ -867,7 +867,7 @@ data TextTelephone = TextTelephone
   { textTelephoneValue :: !Text,
     textTelephonePreference :: !(Maybe Preference)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity TextTelephone
 
@@ -877,7 +877,7 @@ data URITelephone = URITelephone
   { uriTelephoneValue :: !URI,
     uriTelephonePreference :: !(Maybe Preference)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity URITelephone
 
@@ -921,7 +921,7 @@ data Email = Email
   { emailValue :: !Text,
     emailPreference :: !(Maybe Preference)
   }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Validity Email
 
