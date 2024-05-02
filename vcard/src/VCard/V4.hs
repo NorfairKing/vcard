@@ -6,6 +6,7 @@ module VCard.V4
   ( Card (..),
     fromV3,
     toV3,
+    mergeCards,
   )
 where
 
@@ -18,6 +19,7 @@ import Data.Proxy
 import Data.Validity
 import GHC.Generics (Generic)
 import VCard.Component.Class
+import VCard.Merge
 import VCard.Property
 import VCard.PropertyType
 import qualified VCard.V3 as V3
@@ -102,4 +104,23 @@ toV3 c =
         case u of
           UIDText tuid -> Just tuid
           UIDURI uriuid -> Just $ TextUID $ renderURI $ uriUIDValue uriuid -- TODO keep parameters too
+    }
+
+-- Note: Only call this function if the two cards' UID matches.
+--
+-- TODO consider CLIENTPIDMAP
+-- TODO consider PID
+--
+-- This prefers the second card's value in cases where a choice must be made, such as for the properties "N" and "UID"
+mergeCards :: Card -> Card -> Card
+mergeCards c1 c2 =
+  Card
+    { cardSources = mergeList cardSources c1 c2,
+      cardFormattedNames = mergeNE cardFormattedNames c1 c2,
+      cardName = mergeMaybe cardName c1 c2,
+      cardNicknames = mergeList cardNicknames c1 c2,
+      cardGender = mergeMaybe cardGender c1 c2,
+      cardEmails = mergeList cardEmails c1 c2,
+      cardTelephones = mergeList cardTelephones c1 c2,
+      cardUID = mergeMaybe cardUID c1 c2
     }
