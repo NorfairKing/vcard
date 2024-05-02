@@ -26,6 +26,7 @@ data Card = Card
     cardNicknames :: ![Nickname],
     cardEmails :: ![Email],
     cardTelephones :: ![Telephone],
+    cardProductIdentifier :: !(Maybe ProductIdentifier),
     cardUID :: !(Maybe TextUID)
   }
   deriving (Show, Eq, Generic)
@@ -46,6 +47,7 @@ instance IsComponent Card where
     cardNicknames <- listOfPropertiesP componentProperties
     cardEmails <- listOfPropertiesP componentProperties
     cardTelephones <- listOfPropertiesP componentProperties
+    cardProductIdentifier <- optionalPropertyP componentProperties
     cardUID <- optionalPropertyP componentProperties
     pure Card {..}
   componentB Card {..} =
@@ -69,6 +71,7 @@ instance IsComponent Card where
         listOfPropertiesB cardNicknames,
         listOfPropertiesB cardEmails,
         listOfPropertiesB cardTelephones,
+        optionalPropertyB cardProductIdentifier,
         optionalPropertyB cardUID
       ]
 
@@ -77,7 +80,7 @@ instance IsComponent Card where
 -- TODO consider CLIENTPIDMAP
 -- TODO consider PID
 --
--- This prefers the second card's value in cases where a choice must be made, such as for the properties "N" and "UID"
+-- This prefers the second card's value in cases where a choice must be made, such as for the properties "N", "PRODID", and "UID"
 mergeCards :: Card -> Card -> Card
 mergeCards c1 c2 =
   Card
@@ -87,5 +90,6 @@ mergeCards c1 c2 =
       cardNicknames = mergeList cardNicknames c1 c2,
       cardEmails = mergeList cardEmails c1 c2,
       cardTelephones = mergeList cardTelephones c1 c2,
+      cardProductIdentifier = mergeMaybe cardProductIdentifier c1 c2,
       cardUID = mergeMaybe cardUID c1 c2
     }

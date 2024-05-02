@@ -1,4 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -75,6 +77,9 @@ module VCard.Property
     -- *** Explanatory properties
 
     -- **** UID
+    ProductIdentifier (..),
+
+    -- **** UID
     UID (..),
     mkUIDText,
     mkUIDURI,
@@ -95,6 +100,7 @@ import Control.Exception
 import Data.CaseInsensitive (CI)
 import Data.Maybe
 import Data.Proxy
+import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Validity
@@ -940,6 +946,45 @@ mkEmail :: Text -> Email
 mkEmail emailValue =
   let emailPreference = Nothing
    in Email {..}
+
+-- | Product Identifier
+--
+-- [RFC 6350 Section 6.7.3](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.3)
+--
+-- @
+-- Purpose:  To specify the identifier for the product that created the
+--    vCard object.
+--
+-- Type value:  A single text value.
+--
+-- Cardinality:  *1
+--
+-- Special notes:  Implementations SHOULD use a method such as that
+--    specified for Formal Public Identifiers in [ISO9070] or for
+--    Universal Resource Names in [RFC3406] to ensure that the text
+--    value is unique.
+--
+-- ABNF:
+--
+--   PRODID-param = "VALUE=text" / any-param
+--   PRODID-value = text
+--
+-- Example:
+--
+--         PRODID:-//ONLINE DIRECTORY//NONSGML Version 1//EN
+-- @
+newtype ProductIdentifier = ProductIdentifier {unProductIdentifier :: Text}
+  deriving stock (Show, Eq, Generic)
+  deriving newtype (IsString)
+
+instance Validity ProductIdentifier
+
+instance NFData ProductIdentifier
+
+instance IsProperty ProductIdentifier where
+  propertyName Proxy = "PRODID"
+  propertyP = wrapPropertyTypeP ProductIdentifier
+  propertyB = propertyTypeB . unProductIdentifier
 
 -- [RFC 6350 Section 6.7.6](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.6)
 --

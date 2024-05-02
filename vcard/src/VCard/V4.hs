@@ -32,6 +32,7 @@ data Card = Card
     cardGender :: !(Maybe Gender),
     cardEmails :: ![Email],
     cardTelephones :: ![Telephone],
+    cardProductIdentifier :: !(Maybe ProductIdentifier),
     cardUID :: !(Maybe UID)
   }
   deriving (Show, Eq, Generic)
@@ -53,6 +54,7 @@ instance IsComponent Card where
     cardGender <- optionalPropertyP componentProperties
     cardEmails <- listOfPropertiesP componentProperties
     cardTelephones <- listOfPropertiesP componentProperties
+    cardProductIdentifier <- optionalPropertyP componentProperties
     cardUID <- optionalPropertyP componentProperties
     pure Card {..}
   componentB Card {..} =
@@ -74,6 +76,7 @@ instance IsComponent Card where
         optionalPropertyB cardGender,
         listOfPropertiesB cardEmails,
         listOfPropertiesB cardTelephones,
+        optionalPropertyB cardProductIdentifier,
         optionalPropertyB cardUID
       ]
 
@@ -87,6 +90,7 @@ fromV3 c =
       cardEmails = V3.cardEmails c,
       cardGender = Nothing,
       cardTelephones = V3.cardTelephones c,
+      cardProductIdentifier = V3.cardProductIdentifier c,
       cardUID = UIDText <$> V3.cardUID c
     }
 
@@ -99,6 +103,7 @@ toV3 c =
       V3.cardNicknames = cardNicknames c,
       V3.cardEmails = cardEmails c,
       V3.cardTelephones = cardTelephones c,
+      V3.cardProductIdentifier = cardProductIdentifier c,
       V3.cardUID = do
         u <- cardUID c
         case u of
@@ -111,7 +116,7 @@ toV3 c =
 -- TODO consider CLIENTPIDMAP
 -- TODO consider PID
 --
--- This prefers the second card's value in cases where a choice must be made, such as for the properties "N" and "UID"
+-- This prefers the second card's value in cases where a choice must be made, such as for the properties "N", "PRODID", and "UID"
 mergeCards :: Card -> Card -> Card
 mergeCards c1 c2 =
   Card
@@ -122,5 +127,6 @@ mergeCards c1 c2 =
       cardGender = mergeMaybe cardGender c1 c2,
       cardEmails = mergeList cardEmails c1 c2,
       cardTelephones = mergeList cardTelephones c1 c2,
+      cardProductIdentifier = mergeMaybe cardProductIdentifier c1 c2,
       cardUID = mergeMaybe cardUID c1 c2
     }

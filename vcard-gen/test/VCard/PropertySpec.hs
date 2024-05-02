@@ -614,6 +614,32 @@ spec = do
           }
       )
 
+  describe "ProductIdentifier" $ do
+    genValidSpec @ProductIdentifier
+    propertySpec @ProductIdentifier
+
+    -- [RFC 2426 Section 3.6.3](https://datatracker.ietf.org/doc/html/rfc6350#section-3.6.3)
+    -- and
+    -- [RFC 6350 Section 6.7.3](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.3)
+    --
+    -- @
+    -- Example:
+    --
+    --         PRODID:-//ONLINE DIRECTORY//NONSGML Version 1//EN
+    -- @
+    propertyExampleSpec
+      "PRODID:-//ONLINE DIRECTORY//NONSGML Version 1//EN"
+      (ProductIdentifier "-//ONLINE DIRECTORY//NONSGML Version 1//EN")
+
+    -- [RFC 2739 Section 1.1](https://datatracker.ietf.org/doc/html/rfc2739#section-1.1)
+    --
+    -- @
+    -- PRODID:-//hacksw/handcal//NONSGML v1.0//EN
+    -- @
+    propertyExampleSpec
+      "PRODID:-//hacksw/handcal//NONSGML v1.0//EN"
+      (ProductIdentifier "-//hacksw/handcal//NONSGML v1.0//EN")
+
   describe "UID" $ do
     describe "TextUID" $ do
       genValidSpec @TextUID
