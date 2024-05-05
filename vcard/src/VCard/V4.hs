@@ -34,7 +34,8 @@ data Card = Card
     cardTelephones :: ![Telephone],
     cardProductIdentifier :: !(Maybe ProductIdentifier),
     cardUID :: !(Maybe UID),
-    cardRevision :: !(Maybe Revision)
+    cardRevision :: !(Maybe Revision),
+    cardURLs :: ![URL]
   }
   deriving (Show, Eq, Generic)
 
@@ -58,6 +59,7 @@ instance IsComponent Card where
     cardProductIdentifier <- optionalPropertyP componentProperties
     cardUID <- optionalPropertyP componentProperties
     cardRevision <- optionalPropertyP componentProperties
+    cardURLs <- listOfPropertiesP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -80,7 +82,8 @@ instance IsComponent Card where
         listOfPropertiesB cardTelephones,
         optionalPropertyB cardProductIdentifier,
         optionalPropertyB cardUID,
-        optionalPropertyB cardRevision
+        optionalPropertyB cardRevision,
+        listOfPropertiesB cardURLs
       ]
 
 fromV3 :: V3.Card -> Card
@@ -95,7 +98,8 @@ fromV3 c =
       cardTelephones = V3.cardTelephones c,
       cardProductIdentifier = V3.cardProductIdentifier c,
       cardUID = UIDText <$> V3.cardUID c,
-      cardRevision = V3.cardRevision c
+      cardRevision = V3.cardRevision c,
+      cardURLs = V3.cardURLs c
     }
 
 toV3 :: Card -> V3.Card
@@ -113,7 +117,8 @@ toV3 c =
         case u of
           UIDText tuid -> Just tuid
           UIDURI uriuid -> Just $ TextUID $ renderURI $ uriUIDValue uriuid, -- TODO keep parameters too
-      V3.cardRevision = cardRevision c
+      V3.cardRevision = cardRevision c,
+      V3.cardURLs = cardURLs c
     }
 
 -- Note: Only call this function if the two cards' UID matches.
@@ -134,5 +139,6 @@ mergeCards c1 c2 =
       cardTelephones = mergeList cardTelephones c1 c2,
       cardProductIdentifier = mergeMaybe cardProductIdentifier c1 c2,
       cardUID = mergeMaybe cardUID c1 c2,
-      cardRevision = mergeMaybe' max cardRevision c1 c2
+      cardRevision = mergeMaybe' max cardRevision c1 c2,
+      cardURLs = mergeList cardURLs c1 c2
     }

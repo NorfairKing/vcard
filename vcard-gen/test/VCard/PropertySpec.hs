@@ -737,6 +737,54 @@ spec = do
     -- @
     propertyExampleSpec "UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1" (mkUIDURI "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1")
 
+  describe "URL" $ do
+    genValidSpec @URL
+    propertySpec @URL
+
+    -- [RFC2426 Section 3.6.8](https://datatracker.ietf.org/doc/html/rfc2426#section-3.6.8)
+    --
+    -- @
+    -- Type example:
+    --
+    --      URL:http://www.swbyps.restaurant.french/~chezchic.html
+    -- @
+    propertyExampleSpec
+      "URL:http://www.swbyps.restaurant.french/~chezchic.html"
+      (mkURL "http://www.swbyps.restaurant.french/~chezchic.html")
+
+    -- [RFC2739 Section 6](https://datatracker.ietf.org/doc/html/rfc2739#section-6)
+    --
+    -- @
+    -- URL:http://home.earthlink.net/~fdawson
+    -- URL:http://www.egenconsulting.com
+    -- @
+    propertyExampleSpec
+      "URL:http://home.earthlink.net/~fdawson"
+      (mkURL "http://home.earthlink.net/~fdawson")
+    propertyExampleSpec
+      "URL:http://www.egenconsulting.com"
+      (mkURL "http://www.egenconsulting.com")
+
+    -- [RFC6350 Section 6.7.8](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.8)
+    --
+    -- @
+    -- Example:
+    --
+    --         URL:http://example.org/restaurant.french/~chezchic.html
+    -- @
+    propertyExampleSpec
+      "URL:http://example.org/restaurant.french/~chezchic.html"
+      (mkURL "http://example.org/restaurant.french/~chezchic.html")
+
+    -- [RFC6352 Section 6.3.2](https://datatracker.ietf.org/doc/html/rfc6352#section-6.3.2)
+    --
+    -- @
+    -- URL:http://www.example.com
+    -- @
+    propertyExampleSpec
+      "URL:http://www.example.com"
+      (mkURL "http://www.example.com")
+
   describe "Version" $ do
     genValidSpec @Version
     propertySpec @Version

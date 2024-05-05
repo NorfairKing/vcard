@@ -28,7 +28,8 @@ data Card = Card
     cardTelephones :: ![Telephone],
     cardProductIdentifier :: !(Maybe ProductIdentifier),
     cardUID :: !(Maybe TextUID),
-    cardRevision :: !(Maybe Revision)
+    cardRevision :: !(Maybe Revision),
+    cardURLs :: ![URL]
   }
   deriving (Show, Eq, Generic)
 
@@ -51,6 +52,7 @@ instance IsComponent Card where
     cardProductIdentifier <- optionalPropertyP componentProperties
     cardUID <- optionalPropertyP componentProperties
     cardRevision <- optionalPropertyP componentProperties
+    cardURLs <- listOfPropertiesP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -75,7 +77,8 @@ instance IsComponent Card where
         listOfPropertiesB cardTelephones,
         optionalPropertyB cardProductIdentifier,
         optionalPropertyB cardUID,
-        optionalPropertyB cardRevision
+        optionalPropertyB cardRevision,
+        listOfPropertiesB cardURLs
       ]
 
 -- Note: Only call this function if the two cards' UID matches.
@@ -95,5 +98,6 @@ mergeCards c1 c2 =
       cardTelephones = mergeList cardTelephones c1 c2,
       cardProductIdentifier = mergeMaybe cardProductIdentifier c1 c2,
       cardUID = mergeMaybe cardUID c1 c2,
-      cardRevision = mergeMaybe' max cardRevision c1 c2
+      cardRevision = mergeMaybe' max cardRevision c1 c2,
+      cardURLs = mergeList cardURLs c1 c2
     }

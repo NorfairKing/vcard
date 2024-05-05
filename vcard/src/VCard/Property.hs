@@ -90,6 +90,10 @@ module VCard.Property
     TextUID (..),
     mkTextUID,
 
+    -- **** URL
+    URL (..),
+    mkURL,
+
     -- **** Version
     Version (..),
     version3,
@@ -1122,6 +1126,56 @@ instance IsProperty TextUID where
 mkTextUID :: Text -> TextUID
 mkTextUID textUIDValue = TextUID {..}
 
+-- | URL
+--
+-- [RFC6350 Section 6.7.8](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.8)
+--
+-- @
+-- Purpose:  To specify a uniform resource locator associated with the
+--    object to which the vCard refers.  Examples for individuals
+--    include personal web sites, blogs, and social networking site
+--    identifiers.
+--
+-- Cardinality:  *
+--
+-- Value type:  A single uri value.
+--
+-- ABNF:
+--
+--   URL-param = "VALUE=uri" / pid-param / pref-param / type-param
+--             / mediatype-param / altid-param / any-param
+--   URL-value = URI
+--
+-- Example:
+--
+--         URL:http://example.org/restaurant.french/~chezchic.html
+-- @
+data URL = URL
+  { urlValue :: !Text,
+    urlPreference :: !(Maybe Preference)
+  }
+  deriving (Show, Eq, Ord, Generic)
+
+instance Validity URL
+
+instance NFData URL
+
+instance IsProperty URL where
+  propertyName Proxy = "URL"
+  propertyP clv = do
+    urlPreference <- propertyParamP clv
+    wrapPropertyTypeP (\urlValue -> URL {..}) clv
+  propertyB URL {..} =
+    insertMParam urlPreference $
+      propertyTypeB urlValue
+
+mkURL :: Text -> URL
+mkURL urlValue =
+  let urlPreference = Nothing
+   in URL {..}
+
+-- | Version
+--
 -- [RFC6350 Section 6.7.9](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.9)
 --
 -- @
