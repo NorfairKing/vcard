@@ -2,6 +2,7 @@ module VCard.Merge
   ( mergeList,
     mergeNE,
     mergeMaybe,
+    mergeMaybe',
     mergeValue,
   )
 where
@@ -18,11 +19,14 @@ mergeList :: (Ord a) => (c -> [a]) -> c -> c -> [a]
 mergeList func c1 c2 = nubOrd $ func c1 <> func c2
 
 mergeMaybe :: (Eq a) => (c -> Maybe a) -> c -> c -> Maybe a
-mergeMaybe func c1 c2 = case (func c1, func c2) of
+mergeMaybe = mergeMaybe' mergeValue
+
+mergeMaybe' :: (a -> a -> a) -> (c -> Maybe a) -> c -> c -> Maybe a
+mergeMaybe' comb func c1 c2 = case (func c1, func c2) of
   (Nothing, Nothing) -> Nothing
   (Just a, Nothing) -> Just a
   (Nothing, Just a) -> Just a
-  (Just a1, Just a2) -> Just $ mergeValue a1 a2
+  (Just a1, Just a2) -> Just $ comb a1 a2
 
 mergeValue :: (Eq a) => a -> a -> a
 mergeValue a1 a2 =

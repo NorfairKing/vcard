@@ -33,7 +33,8 @@ data Card = Card
     cardEmails :: ![Email],
     cardTelephones :: ![Telephone],
     cardProductIdentifier :: !(Maybe ProductIdentifier),
-    cardUID :: !(Maybe UID)
+    cardUID :: !(Maybe UID),
+    cardRevision :: !(Maybe Revision)
   }
   deriving (Show, Eq, Generic)
 
@@ -56,6 +57,7 @@ instance IsComponent Card where
     cardTelephones <- listOfPropertiesP componentProperties
     cardProductIdentifier <- optionalPropertyP componentProperties
     cardUID <- optionalPropertyP componentProperties
+    cardRevision <- optionalPropertyP componentProperties
     pure Card {..}
   componentB Card {..} =
     mconcat
@@ -77,7 +79,8 @@ instance IsComponent Card where
         listOfPropertiesB cardEmails,
         listOfPropertiesB cardTelephones,
         optionalPropertyB cardProductIdentifier,
-        optionalPropertyB cardUID
+        optionalPropertyB cardUID,
+        optionalPropertyB cardRevision
       ]
 
 fromV3 :: V3.Card -> Card
@@ -91,7 +94,8 @@ fromV3 c =
       cardGender = Nothing,
       cardTelephones = V3.cardTelephones c,
       cardProductIdentifier = V3.cardProductIdentifier c,
-      cardUID = UIDText <$> V3.cardUID c
+      cardUID = UIDText <$> V3.cardUID c,
+      cardRevision = V3.cardRevision c
     }
 
 toV3 :: Card -> V3.Card
@@ -108,7 +112,8 @@ toV3 c =
         u <- cardUID c
         case u of
           UIDText tuid -> Just tuid
-          UIDURI uriuid -> Just $ TextUID $ renderURI $ uriUIDValue uriuid -- TODO keep parameters too
+          UIDURI uriuid -> Just $ TextUID $ renderURI $ uriUIDValue uriuid, -- TODO keep parameters too
+      V3.cardRevision = cardRevision c
     }
 
 -- Note: Only call this function if the two cards' UID matches.
@@ -128,5 +133,6 @@ mergeCards c1 c2 =
       cardEmails = mergeList cardEmails c1 c2,
       cardTelephones = mergeList cardTelephones c1 c2,
       cardProductIdentifier = mergeMaybe cardProductIdentifier c1 c2,
-      cardUID = mergeMaybe cardUID c1 c2
+      cardUID = mergeMaybe cardUID c1 c2,
+      cardRevision = mergeMaybe' max cardRevision c1 c2
     }

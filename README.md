@@ -102,13 +102,13 @@ TODO
   - [ ] 6.7.  Explanatory Properties
     - [ ] 6.7.1.  CATEGORIES
     - [ ] 6.7.2.  NOTE
-    - [ ] 6.7.3.  PRODID
-    - [ ] 6.7.4.  REV 
+    - [X] 6.7.3.  PRODID
+    - [X] 6.7.4.  REV 
     - [ ] 6.7.5.  SOUND 
-    - [ ] 6.7.6.  UID 
+    - [X] 6.7.6.  UID 
     - [ ] 6.7.7.  CLIENTPIDMAP
     - [ ] 6.7.8.  URL 
-    - [ ] 6.7.9.  VERSION 
+    - [X] 6.7.9.  VERSION 
   - [ ] 6.8.  Security Properties 
     - [ ] 6.8.1.  KEY 
   - [ ] 6.9.  Calendar Properties 

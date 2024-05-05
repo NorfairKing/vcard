@@ -5,6 +5,7 @@
 
 module VCard.PropertySpec where
 
+import Data.Time
 import Test.Syd
 import Test.Syd.Validity hiding (Location)
 import VCard.Parameter
@@ -640,12 +641,44 @@ spec = do
       "PRODID:-//hacksw/handcal//NONSGML v1.0//EN"
       (ProductIdentifier "-//hacksw/handcal//NONSGML v1.0//EN")
 
+  describe "Revision" $ do
+    genValidSpec @Revision
+    propertySpec @Revision
+    -- [RFC 2426 Section 3.6.4](https://datatracker.ietf.org/doc/html/rfc2426#section-3.6.4)
+    --
+    -- @
+    -- Type example:
+    --
+    --      REV:1995-10-31T22:27:10Z
+    --
+    --      REV:1997-11-15
+    -- @
+    --
+    -- TODO these too:
+    -- propertyExampleSpec
+    --   "REV:1995-10-31T22:27:10Z"
+    --   (Revision (UTCTime (fromGregorian 1995 10 31) (timeOfDayToTime (TimeOfDay 22 27 10))))
+    -- propertyExampleSpec
+    --   "REV:1995-10-31T22:27:10Z"
+    --   (Revision (UTCTime (fromGregorian 1997 11 15) )
+
+    -- [RFC 6350 Section 6.7.4](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.4)
+    --
+    -- @
+    -- Example:
+    --
+    --         REV:19951031T222710Z
+    -- @
+    propertyExampleSpec
+      "REV:19951031T222710Z"
+      (Revision (UTCTime (fromGregorian 1995 10 31) (timeOfDayToTime (TimeOfDay 22 27 10))))
+
   describe "UID" $ do
     describe "TextUID" $ do
       genValidSpec @TextUID
       propertySpec @TextUID
 
-      -- [RFC 2426 Section 3.6.7](https://datatracker.ietf.org/doc/html/rfc6350#section-3.6.7)
+      -- [RFC 2426 Section 3.6.7](https://datatracker.ietf.org/doc/html/rfc2426#section-3.6.7)
       --
       -- @
       -- Type example:

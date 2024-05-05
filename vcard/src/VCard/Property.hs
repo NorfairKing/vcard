@@ -76,8 +76,11 @@ module VCard.Property
 
     -- *** Explanatory properties
 
-    -- **** UID
+    -- **** Product Identifier
     ProductIdentifier (..),
+
+    -- **** Revision
+    Revision (..),
 
     -- **** UID
     UID (..),
@@ -103,6 +106,7 @@ import Data.Proxy
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time
 import Data.Validity
 import Data.Validity.Text ()
 import Data.Void
@@ -986,6 +990,43 @@ instance IsProperty ProductIdentifier where
   propertyP = wrapPropertyTypeP ProductIdentifier
   propertyB = propertyTypeB . unProductIdentifier
 
+-- | Revision
+--
+-- [RFC 6350 Section 6.7.4](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.4)
+--
+-- @
+-- Purpose:  To specify revision information about the current vCard.
+--
+-- Value type:  A single timestamp value.
+--
+-- Cardinality:  *1
+--
+-- Special notes:  The value distinguishes the current revision of the
+--    information in this vCard for other renditions of the information.
+--
+-- ABNF:
+--
+--   REV-param = "VALUE=timestamp" / any-param
+--   REV-value = timestamp
+--
+-- Example:
+--
+--         REV:19951031T222710Z
+-- @
+newtype Revision = Revision {unRevision :: UTCTime}
+  deriving (Show, Eq, Ord, Generic)
+
+instance Validity Revision
+
+instance NFData Revision
+
+instance IsProperty Revision where
+  propertyName Proxy = "REV"
+  propertyP = wrapPropertyTypeP Revision
+  propertyB = propertyTypeB . unRevision
+
+-- | Unique Identifier
+--
 -- [RFC 6350 Section 6.7.6](https://datatracker.ietf.org/doc/html/rfc6350#section-6.7.6)
 --
 -- @
