@@ -181,6 +181,52 @@ spec = do
       (mkSimpleContentLineValue "True")
       True
 
+  describe "Date" $ do
+    propertyTypeSpec @Day
+    -- \| Date
+    --
+    -- [RFC 6350 Section 4.3.1](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.1)
+    --
+    -- @
+    -- Examples for "date":
+    --
+    --           19850412
+    --           1985-04
+    --           1985
+    --           --0412
+    -- @
+    propertyTypeExampleSpec (mkSimpleContentLineValue "19850412") (fromGregorian 1985 04 12)
+  -- TODO
+  -- propertyTypeExampleSpec "1985-04"
+  -- propertyTypeExampleSpec "1985"
+  -- propertyTypeExampleSpec "--0412"
+
+  describe "Time" $ do
+    propertyTypeSpec @TimeOfDay
+
+    -- [RFC 6350 Section 4.3.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.5)
+    --
+    -- @
+    -- Examples for "time":
+    --
+    --           102200
+    --           1022
+    --           10
+    --           -2200
+    --           --00
+    --           102200Z
+    --           102200-0800
+    -- @
+    propertyTypeExampleSpec (mkSimpleContentLineValue "102200") (TimeOfDay 10 22 00)
+  -- TODO
+  -- propertyTypeExampleSpec (mkSimpleContentLineValue "102200")
+  -- propertyTypeExampleSpec (mkSimpleContentLineValue "1022")
+  -- propertyTypeExampleSpec (mkSimpleContentLineValue "10")
+  -- propertyTypeExampleSpec (mkSimpleContentLineValue "-2200")
+  -- propertyTypeExampleSpec (mkSimpleContentLineValue "--00")
+  -- propertyTypeExampleSpec (mkSimpleContentLineValue "102200Z")
+  -- propertyTypeExampleSpec (mkSimpleContentLineValue "102200-0800")
+
   describe "Timestamp" $ do
     propertyTypeSpec @UTCTime
 

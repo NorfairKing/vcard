@@ -59,6 +59,8 @@ data PropertyTypeParseError
   | UnparseableBoolean !Text
   | UnparseableInteger !Text
   | UnparseableURI !Text
+  | UnparseableDate !Text
+  | UnparseableTime !Text
   | UnparseableTimestamp !Text
   deriving (Show, Eq, Ord)
 
@@ -73,6 +75,8 @@ instance Exception PropertyTypeParseError where
     UnparseableBoolean t -> unwords ["Unparseable BOOLEAN", show t]
     UnparseableInteger t -> unwords ["Unparseable INTEGER", show t]
     UnparseableURI t -> unwords ["Unparseable URI", show t]
+    UnparseableDate t -> unwords ["Unparseable DATE", show t]
+    UnparseableTime t -> unwords ["Unparseable TIME", show t]
     UnparseableTimestamp t -> unwords ["Unparseable TIMESTAMP", show t]
 
 data PropertyTypeParseFixableError
@@ -331,6 +335,92 @@ instance IsPropertyType Int64 where
           '+' : rest -> go rest
           _ -> go s
   propertyTypeB = mkSimpleContentLineValue . T.pack . show
+
+-- | Date
+--
+-- [RFC 6350 Section 4.3.1](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.1)
+--
+-- @
+-- A calendar date as specified in [ISO.8601.2004], Section 4.1.2.
+--
+-- Reduced accuracy, as specified in [ISO.8601.2004], Sections 4.1.2.3
+-- a) and b), but not c), is permitted.
+--
+-- Expanded representation, as specified in [ISO.8601.2004], Section
+-- 4.1.4, is forbidden.
+--
+-- Truncated representation, as specified in [ISO.8601.2000], Sections
+-- 5.2.1.3 d), e), and f), is permitted.
+--
+-- Examples for "date":
+--
+--           19850412
+--           1985-04
+--           1985
+--           --0412
+--           ---12
+--
+-- Note the use of YYYY-MM in the second example above.  YYYYMM is
+-- disallowed to prevent confusion with YYMMDD.  Note also that
+-- YYYY-MM-DD is disallowed since we are using the basic format instead
+-- of the extended format.
+-- @
+instance IsPropertyType Day where
+  propertyTypeValueType Proxy = TypeDate
+  propertyTypeP clv = do
+    let t = contentLineValueRaw clv
+    let s = T.unpack t
+    let parses =
+          [ formatParseM (calendarFormat BasicFormat) s
+          ]
+    case msum parses of
+      Nothing -> unfixableError $ UnparseableDate t
+      Just v -> pure v
+  propertyTypeB = mkSimpleContentLineValue . T.pack . formatShow (calendarFormat BasicFormat)
+
+-- | TimeOfDay
+--
+-- [RFC 6350 Section 4.3.2](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.2)
+--
+-- @
+-- A time of day as specified in [ISO.8601.2004], Section 4.2.
+--
+-- Reduced accuracy, as specified in [ISO.8601.2004], Section 4.2.2.3,
+-- is permitted.
+--
+-- Representation with decimal fraction, as specified in
+-- [ISO.8601.2004], Section 4.2.2.4, is forbidden.
+--
+-- The midnight hour is always represented by 00, never 24 (see
+-- [ISO.8601.2004], Section 4.2.3).
+--
+-- Truncated representation, as specified in [ISO.8601.2000], Sections
+-- 5.3.1.4 a), b), and c), is permitted.
+--
+-- Examples for "time":
+--
+--           102200
+--           1022
+--           10
+--           -2200
+--           --00
+--           102200Z
+--           102200-0800
+-- @
+instance IsPropertyType TimeOfDay where
+  propertyTypeValueType Proxy = TypeDate
+  propertyTypeP clv = do
+    let t = contentLineValueRaw clv
+    let s = T.unpack t
+    let parses =
+          [ formatParseM (timeOfDayFormat BasicFormat) s
+          ]
+    case msum parses of
+      Nothing -> unfixableError $ UnparseableDate t
+      Just v -> pure v
+  propertyTypeB = mkSimpleContentLineValue . T.pack . formatShow (timeOfDayFormat BasicFormat)
+
+-- @
 
 -- | Timestamp
 --
