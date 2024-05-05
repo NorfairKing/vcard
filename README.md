@@ -43,13 +43,13 @@ TODO
   - [ ] 3.4.  Property Value Escaping 
 - [ ] 4.  Property Value Data Types 
   - [X] 4.1.  TEXT
-  - [ ] 4.2.  URI 
+  - [X] 4.2.  URI 
   - [ ] 4.3.  DATE, TIME, DATE-TIME, DATE-AND-OR-TIME, and TIMESTAMP
     - [ ] 4.3.1.  DATE
     - [ ] 4.3.2.  TIME
     - [ ] 4.3.3.  DATE-TIME 
     - [ ] 4.3.4.  DATE-AND-OR-TIME
-    - [ ] 4.3.5.  TIMESTAMP 
+    - [X] 4.3.5.  TIMESTAMP 
   - [X] 4.4.  BOOLEAN 
   - [X] 4.5.  INTEGER 
   - [ ] 4.6.  FLOAT 

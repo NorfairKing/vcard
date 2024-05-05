@@ -63,9 +63,10 @@ tests:
     - dlist
     - genvalidity-sydtest
     - genvalidity-text
-    - vcard
-    - vcard-gen
     - megaparsec
     - path
     - sydtest
     - text
+    - time
+    - vcard
+    - vcard-gen

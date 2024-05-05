@@ -4,7 +4,7 @@
 , genvalidity-containers, genvalidity-criterion
 , genvalidity-network-uri, genvalidity-sydtest, genvalidity-text
 , genvalidity-time, genvalidity-vector, lib, megaparsec, path
-, QuickCheck, sydtest, sydtest-discover, text, vcard
+, QuickCheck, sydtest, sydtest-discover, text, time, vcard
 }:
 mkDerivation {
   pname = "vcard-gen";
@@ -20,7 +20,7 @@ mkDerivation {
   testHaskellDepends = [
     base bytestring conformance conformance-gen dlist
     genvalidity-sydtest genvalidity-text megaparsec path QuickCheck
-    sydtest text vcard
+    sydtest text time vcard
   ];
   testToolDepends = [ sydtest-discover ];
   benchmarkHaskellDepends = [

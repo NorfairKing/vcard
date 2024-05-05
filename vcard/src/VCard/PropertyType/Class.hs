@@ -34,12 +34,15 @@ where
 
 import Conformance
 import Control.Exception
+import Control.Monad
 import Data.CaseInsensitive (CI)
 import qualified Data.CaseInsensitive as CI
 import Data.Int
 import Data.Proxy
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time
+import Data.Time.Format.ISO8601
 import Data.Void
 import Text.Read
 import VCard.ContentLine
@@ -56,6 +59,7 @@ data PropertyTypeParseError
   | UnparseableBoolean !Text
   | UnparseableInteger !Text
   | UnparseableURI !Text
+  | UnparseableTimestamp !Text
   deriving (Show, Eq, Ord)
 
 instance Exception PropertyTypeParseError where
@@ -69,6 +73,7 @@ instance Exception PropertyTypeParseError where
     UnparseableBoolean t -> unwords ["Unparseable BOOLEAN", show t]
     UnparseableInteger t -> unwords ["Unparseable INTEGER", show t]
     UnparseableURI t -> unwords ["Unparseable URI", show t]
+    UnparseableTimestamp t -> unwords ["Unparseable TIMESTAMP", show t]
 
 data PropertyTypeParseFixableError
   = ParameterParseFixableError !ParameterParseFixableError
@@ -295,6 +300,8 @@ instance IsPropertyType Bool where
       True -> "TRUE"
       False -> "FALSE"
 
+-- | Integer
+--
 -- [RFC 6350 Section 4.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.5)
 --
 -- @
@@ -324,6 +331,36 @@ instance IsPropertyType Int64 where
           '+' : rest -> go rest
           _ -> go s
   propertyTypeB = mkSimpleContentLineValue . T.pack . show
+
+-- | Timestamp
+--
+-- [RFC 6350 Section 4.3.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.5)
+--
+-- @
+-- A complete date and time of day combination as specified in
+-- [ISO.8601.2004], Section 4.3.2.
+--
+-- Examples for "timestamp":
+--
+--           19961022T140000
+--           19961022T140000Z
+--           19961022T140000-05
+--           19961022T140000-0500
+-- @
+instance IsPropertyType UTCTime where
+  propertyTypeValueType Proxy = TypeTimestamp
+  propertyTypeP clv = do
+    let t = contentLineValueRaw clv
+    let s = T.unpack t
+    let parses =
+          [ formatParseM (utcTimeFormat (calendarFormat BasicFormat) (timeOfDayFormat BasicFormat)) s,
+            localTimeToUTC utc <$> formatParseM (localTimeFormat (calendarFormat BasicFormat) (timeOfDayFormat BasicFormat)) s,
+            zonedTimeToUTC <$> formatParseM (zonedTimeFormat (calendarFormat BasicFormat) (timeOfDayFormat BasicFormat) BasicFormat) s
+          ]
+    case msum parses of
+      Nothing -> unfixableError $ UnparseableTimestamp t
+      Just v -> pure v
+  propertyTypeB = mkSimpleContentLineValue . T.pack . formatShow (utcTimeFormat (calendarFormat BasicFormat) (timeOfDayFormat BasicFormat))
 
 typedPropertyTypeP ::
   forall propertyType.

@@ -1,6 +1,6 @@
 { mkDerivation, base, bytestring, case-insensitive, conformance
 , containers, deepseq, dlist, lib, megaparsec, network-uri, text
-, validity, validity-case-insensitive, validity-containers
+, time, validity, validity-case-insensitive, validity-containers
 , validity-network-uri, validity-text, validity-time
 }:
 mkDerivation {
@@ -9,7 +9,7 @@ mkDerivation {
   src = ./.;
   libraryHaskellDepends = [
     base bytestring case-insensitive conformance containers deepseq
-    dlist megaparsec network-uri text validity
+    dlist megaparsec network-uri text time validity
     validity-case-insensitive validity-containers validity-network-uri
     validity-text validity-time
   ];

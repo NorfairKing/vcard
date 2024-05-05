@@ -8,6 +8,7 @@ module VCard.PropertyTypeSpec where
 import Data.GenValidity.Text
 import Data.Int
 import Data.Text (Text)
+import Data.Time
 import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
@@ -179,3 +180,32 @@ spec = do
     propertyTypeParseExampleSpec
       (mkSimpleContentLineValue "True")
       True
+
+  describe "Timestamp" $ do
+    propertyTypeSpec @UTCTime
+
+    -- [RFC 6350 Section 4.3.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.5)
+    --
+    -- @
+    -- Examples for "timestamp":
+    --
+    --           19961022T140000
+    --           19961022T140000Z
+    --           19961022T140000-05
+    --           19961022T140000-0500
+    -- @
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "19961022T140000")
+      (UTCTime (fromGregorian 1996 10 22) (timeOfDayToTime (TimeOfDay 14 00 00)))
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "19961022T140000Z")
+      (UTCTime (fromGregorian 1996 10 22) (timeOfDayToTime (TimeOfDay 14 00 00)))
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "19961022T140000-05")
+      (UTCTime (fromGregorian 1996 10 22) (timeOfDayToTime (TimeOfDay 19 00 00)))
+    propertyTypeRenderExampleSpec
+      (mkSimpleContentLineValue "19961022T190000Z")
+      (UTCTime (fromGregorian 1996 10 22) (timeOfDayToTime (TimeOfDay 19 00 00)))
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "19961022T140000-0500")
+      (UTCTime (fromGregorian 1996 10 22) (timeOfDayToTime (TimeOfDay 19 00 00)))

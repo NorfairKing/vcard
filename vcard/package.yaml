@@ -16,6 +16,7 @@ library:
   - megaparsec
   - network-uri
   - text
+  - time
   - validity
   - validity-case-insensitive
   - validity-containers
