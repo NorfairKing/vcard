@@ -181,6 +181,39 @@ spec = do
       (mkSimpleContentLineValue "True")
       True
 
+  describe "Float" $ do
+    -- Roundtrip doesn't work because NaNs don't equal themselves
+    -- propertyTypeSpec @Double
+
+    -- [RFC 6350 Section 4.6](https://datatracker.ietf.org/doc/html/rfc6350#section-4.6)
+    --
+    -- @
+    -- Examples:
+    --
+    --     20.30
+    --     1000000.0000001
+    --     1.333,3.14
+    -- @
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "20.30")
+      (20.30 :: Double)
+    propertyTypeRenderExampleSpec
+      (mkSimpleContentLineValue "20.3")
+      (20.30 :: Double)
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "1000000.0000001")
+      (1000000.0000001 :: Double)
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "1.333")
+      (1.333 :: Double)
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "3.14")
+      (3.14 :: Double)
+    -- Big number, no scientific notation
+    propertyTypeExampleSpec
+      (mkSimpleContentLineValue "1000000000000000000000.0")
+      (1000000000000000000000.0 :: Double)
+
   describe "Date" $ do
     propertyTypeSpec @Day
     -- \| Date

@@ -44,6 +44,7 @@ import qualified Data.Text as T
 import Data.Time
 import Data.Time.Format.ISO8601
 import Data.Void
+import Text.Printf
 import Text.Read
 import VCard.ContentLine
 import VCard.Parameter.Class
@@ -56,12 +57,13 @@ data PropertyTypeParseError
       !ValueDataType
       -- Expected
       !ValueDataType
-  | UnparseableBoolean !Text
-  | UnparseableInteger !Text
   | UnparseableURI !Text
   | UnparseableDate !Text
   | UnparseableTime !Text
   | UnparseableTimestamp !Text
+  | UnparseableBoolean !Text
+  | UnparseableInteger !Text
+  | UnparseableFloat !Text
   deriving (Show, Eq, Ord)
 
 instance Exception PropertyTypeParseError where
@@ -72,12 +74,13 @@ instance Exception PropertyTypeParseError where
           unwords ["actual:   ", show actual],
           unwords ["expected: ", show expected]
         ]
-    UnparseableBoolean t -> unwords ["Unparseable BOOLEAN", show t]
-    UnparseableInteger t -> unwords ["Unparseable INTEGER", show t]
     UnparseableURI t -> unwords ["Unparseable URI", show t]
     UnparseableDate t -> unwords ["Unparseable DATE", show t]
     UnparseableTime t -> unwords ["Unparseable TIME", show t]
     UnparseableTimestamp t -> unwords ["Unparseable TIMESTAMP", show t]
+    UnparseableBoolean t -> unwords ["Unparseable BOOLEAN", show t]
+    UnparseableInteger t -> unwords ["Unparseable INTEGER", show t]
+    UnparseableFloat t -> unwords ["Unparseable FLOAT", show t]
 
 data PropertyTypeParseFixableError
   = ParameterParseFixableError !ParameterParseFixableError
@@ -279,63 +282,6 @@ unEscapeText = T.pack . go . T.unpack
       '\\' : 'N' : rest -> '\n' : go rest
       c : rest -> c : go rest
 
--- [RFC 6350 Section 4.4](https://datatracker.ietf.org/doc/html/rfc6350#section-4.4)
---
--- @
--- "boolean": The "boolean" value type is used to express boolean
--- values.  These values are case-insensitive.
---
--- Examples:
---
---     TRUE
---     false
---     True
--- @
-instance IsPropertyType Bool where
-  propertyTypeValueType Proxy = TypeBoolean
-  propertyTypeP clv =
-    let t = contentLineValueRaw clv
-     in case CI.mk t of
-          "TRUE" -> pure True
-          "FALSE" -> pure False
-          _ -> unfixableError $ UnparseableBoolean t
-  propertyTypeB =
-    mkSimpleContentLineValue . \case
-      True -> "TRUE"
-      False -> "FALSE"
-
--- | Integer
---
--- [RFC 6350 Section 4.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.5)
---
--- @
--- "integer": The "integer" value type is used to express signed
--- integers in decimal format.  If sign is not specified, the value is
--- assumed positive "+".  Multiple "integer" values can be specified
--- using the comma-separated notation.  The maximum value is
--- 9223372036854775807, and the minimum value is -9223372036854775808.
--- These limits correspond to a signed 64-bit integer using two's-
--- complement arithmetic.
---
--- Examples:
---
---     1234567890
---     -1234556790
---     +1234556790,432109876
--- @
-instance IsPropertyType Int64 where
-  propertyTypeValueType Proxy = TypeInteger
-  propertyTypeP clv =
-    let t = contentLineValueRaw clv
-        s = T.unpack t
-        go s' = case readMaybe s' of
-          Nothing -> unfixableError $ UnparseableInteger t
-          Just i -> pure i
-     in case s of
-          '+' : rest -> go rest
-          _ -> go s
-  propertyTypeB = mkSimpleContentLineValue . T.pack . show
-
 -- | Date
 --
 -- [RFC 6350 Section 4.3.1](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.1)
@@ -420,8 +366,6 @@ instance IsPropertyType TimeOfDay where
       Just v -> pure v
   propertyTypeB = mkSimpleContentLineValue . T.pack . formatShow (timeOfDayFormat BasicFormat)
 
--- @
-
 -- | Timestamp
 --
 -- [RFC 6350 Section 4.3.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.3.5)
@@ -451,6 +395,96 @@ instance IsPropertyType UTCTime where
       Nothing -> unfixableError $ UnparseableTimestamp t
       Just v -> pure v
   propertyTypeB = mkSimpleContentLineValue . T.pack . formatShow (utcTimeFormat (calendarFormat BasicFormat) (timeOfDayFormat BasicFormat))
+
+-- [RFC 6350 Section 4.4](https://datatracker.ietf.org/doc/html/rfc6350#section-4.4)
+--
+-- @
+-- "boolean": The "boolean" value type is used to express boolean
+-- values.  These values are case-insensitive.
+--
+-- Examples:
+--
+--     TRUE
+--     false
+--     True
+-- @
+instance IsPropertyType Bool where
+  propertyTypeValueType Proxy = TypeBoolean
+  propertyTypeP clv =
+    let t = contentLineValueRaw clv
+     in case CI.mk t of
+          "TRUE" -> pure True
+          "FALSE" -> pure False
+          _ -> unfixableError $ UnparseableBoolean t
+  propertyTypeB =
+    mkSimpleContentLineValue . \case
+      True -> "TRUE"
+      False -> "FALSE"
+
+-- | Integer
+--
+-- [RFC 6350 Section 4.5](https://datatracker.ietf.org/doc/html/rfc6350#section-4.5)
+--
+-- @
+-- "integer": The "integer" value type is used to express signed
+-- integers in decimal format.  If sign is not specified, the value is
+-- assumed positive "+".  Multiple "integer" values can be specified
+-- using the comma-separated notation.  The maximum value is
+-- 9223372036854775807, and the minimum value is -9223372036854775808.
+-- These limits correspond to a signed 64-bit integer using two's-
+-- complement arithmetic.
+--
+-- Examples:
+--
+--     1234567890
+--     -1234556790
+--     +1234556790,432109876
+-- @
+instance IsPropertyType Int64 where
+  propertyTypeValueType Proxy = TypeInteger
+  propertyTypeP clv =
+    let t = contentLineValueRaw clv
+        s = T.unpack t
+        go s' = case readMaybe s' of
+          Nothing -> unfixableError $ UnparseableInteger t
+          Just i -> pure i
+     in case s of
+          '+' : rest -> go rest
+          _ -> go s
+  propertyTypeB = mkSimpleContentLineValue . T.pack . show
+
+-- | Float
+--
+-- [RFC 6350 Section 4.6](https://datatracker.ietf.org/doc/html/rfc6350#section-4.6)
+--
+-- @
+-- "float": The "float" value type is used to express real numbers.  If
+-- sign is not specified, the value is assumed positive "+".  Multiple
+-- "float" values can be specified using the comma-separated notation.
+-- Implementations MUST support a precision equal or better than that of
+-- the IEEE "binary64" format [IEEE.754.2008].
+--
+--    Note: Scientific notation is disallowed.  Implementers wishing to
+--    use their favorite language's %f formatting should be careful.
+--
+-- Examples:
+--
+--     20.30
+--     1000000.0000001
+--     1.333,3.14
+-- @
+instance IsPropertyType Double where
+  propertyTypeValueType Proxy = TypeFloat
+  propertyTypeP clv =
+    let t = contentLineValueRaw clv
+        s = T.unpack t
+        go s' = case readMaybe s' of
+          Nothing -> unfixableError $ UnparseableInteger t
+          Just i -> pure i
+     in case s of
+          '+' : rest -> go rest
+          _ -> go s
+  propertyTypeB = mkSimpleContentLineValue . T.pack . printf "%f"
 
 typedPropertyTypeP ::
   forall propertyType.
