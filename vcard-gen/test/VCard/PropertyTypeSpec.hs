@@ -289,3 +289,19 @@ spec = do
     propertyTypeParseExampleSpec
       (mkSimpleContentLineValue "19961022T140000-0500")
       (UTCTime (fromGregorian 1996 10 22) (timeOfDayToTime (TimeOfDay 19 00 00)))
+
+  describe "UTCOffset" $ do
+    genValidSpec @UTCOffset
+    propertyTypeSpec @UTCOffset
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "+1000")
+      (UTCOffset 600)
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "+0100")
+      (UTCOffset 60)
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "-2000")
+      (UTCOffset (-1200))
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "-0200")
+      (UTCOffset (-120))

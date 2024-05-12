@@ -13,6 +13,7 @@ import Data.GenValidity.Text ()
 import Data.GenValidity.Time ()
 import Data.GenValidity.URI ()
 import GHC.Stack
+import Test.QuickCheck
 import Test.Syd
 import Test.Syd.Validity
 import VCard.ContentLine
@@ -23,6 +24,9 @@ import VCard.PropertyType
 instance GenValid URI where
   genValid = genValidStructurallyWithoutExtraChecking
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
+instance GenValid UTCOffset where
+  genValid = UTCOffset <$> choose (-utcOffsetAbsBound, utcOffsetAbsBound)
 
 propertyTypeRenderExampleSpec ::
   ( Show propertyType,

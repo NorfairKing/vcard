@@ -64,6 +64,7 @@ data PropertyTypeParseError
   | UnparseableBoolean !Text
   | UnparseableInteger !Text
   | UnparseableFloat !Text
+  | UnparseableUTCOffset !Text
   deriving (Show, Eq, Ord)
 
 instance Exception PropertyTypeParseError where
@@ -81,6 +82,7 @@ instance Exception PropertyTypeParseError where
     UnparseableBoolean t -> unwords ["Unparseable BOOLEAN", show t]
     UnparseableInteger t -> unwords ["Unparseable INTEGER", show t]
     UnparseableFloat t -> unwords ["Unparseable FLOAT", show t]
+    UnparseableUTCOffset t -> unwords ["Unparseable UTC-OFFSET", show t]
 
 data PropertyTypeParseFixableError
   = ParameterParseFixableError !ParameterParseFixableError

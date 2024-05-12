@@ -53,7 +53,7 @@ TODO
   - [X] 4.4.  BOOLEAN 
   - [X] 4.5.  INTEGER 
   - [X] 4.6.  FLOAT 
-  - [ ] 4.7.  UTC-OFFSET
+  - [X] 4.7.  UTC-OFFSET
   - [ ] 4.8.  LANGUAGE-TAG
 - [ ] 5.  Property Parameters 
   - [X] 5.1.  LANGUAGE
