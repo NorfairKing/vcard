@@ -21,6 +21,7 @@ library
       VCard.Property
       VCard.PropertyType
       VCard.PropertyType.Class
+      VCard.PropertyType.LanguageTag
       VCard.PropertyType.URI
       VCard.PropertyType.UTCOffset
       VCard.UnfoldedLine

@@ -28,6 +28,10 @@ instance GenValid URI where
 instance GenValid UTCOffset where
   genValid = UTCOffset <$> choose (-utcOffsetAbsBound, utcOffsetAbsBound)
 
+instance GenValid LanguageTag where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 propertyTypeRenderExampleSpec ::
   ( Show propertyType,
     IsPropertyType propertyType,

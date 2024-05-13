@@ -305,3 +305,17 @@ spec = do
     propertyTypeParseExampleSpec
       (mkSimpleContentLineValue "-0200")
       (UTCOffset (-120))
+
+  describe "LanguageTag" $ do
+    genValidSpec @LanguageTag
+    propertyTypeSpec @LanguageTag
+
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "fr")
+      (LanguageTag "fr")
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "en")
+      (LanguageTag "en")
+    propertyTypeParseExampleSpec
+      (mkSimpleContentLineValue "jp")
+      (LanguageTag "jp")

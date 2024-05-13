@@ -54,7 +54,7 @@ TODO
   - [X] 4.5.  INTEGER 
   - [X] 4.6.  FLOAT 
   - [X] 4.7.  UTC-OFFSET
-  - [ ] 4.8.  LANGUAGE-TAG
+  - [X] 4.8.  LANGUAGE-TAG
 - [ ] 5.  Property Parameters 
   - [X] 5.1.  LANGUAGE
   - [X] 5.2.  VALUE 
