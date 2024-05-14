@@ -104,3 +104,17 @@ spec = do
     -- PREF=2
     -- @
     parameterExampleSpec "2" (Preference 2)
+
+  describe "AlternativeIdentifier" $ do
+    genValidSpec @AlternativeIdentifier
+    parameterSpec @AlternativeIdentifier
+
+    -- [RFC 6350 Section 5.4](https://datatracker.ietf.org/doc/html/rfc6350#section-5.4)
+    --
+    -- @
+    --   TITLE;ALTID=1;LANGUAGE=fr:Patron
+    --   TITLE;ALTID=1;LANGUAGE=en:Boss
+    --   TITLE;ALTID=2;LANGUAGE=en:Chief vCard Evangelist
+    -- @
+    parameterExampleSpec "1" (AlternativeIdentifier "1")
+    parameterExampleSpec "2" (AlternativeIdentifier "2")

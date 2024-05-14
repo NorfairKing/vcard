@@ -23,6 +23,10 @@ instance GenValid Language where
 instance GenValid Preference where
   genValid = Preference <$> choose (1, 100)
 
+instance GenValid AlternativeIdentifier where
+  genValid = genValidStructurallyWithoutExtraChecking
+  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+
 parameterExampleSpec ::
   (Show parameter, Eq parameter, IsParameter parameter, HasCallStack) =>
   ParamValue ->

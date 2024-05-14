@@ -59,7 +59,7 @@ TODO
   - [X] 5.1.  LANGUAGE
   - [X] 5.2.  VALUE 
   - [X] 5.3.  PREF
-  - [ ] 5.4.  ALTID 
+  - [X] 5.4.  ALTID 
   - [ ] 5.5.  PID 
   - [ ] 5.6.  TYPE
   - [ ] 5.7.  MEDIATYPE 
@@ -107,7 +107,7 @@ TODO
     - [ ] 6.7.5.  SOUND 
     - [X] 6.7.6.  UID 
     - [ ] 6.7.7.  CLIENTPIDMAP
-    - [ ] 6.7.8.  URL 
+    - [X] 6.7.8.  URL 
     - [X] 6.7.9.  VERSION 
   - [ ] 6.8.  Security Properties 
     - [ ] 6.8.1.  KEY 

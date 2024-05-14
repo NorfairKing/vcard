@@ -68,7 +68,9 @@ module VCard.Property
     mkTelephoneText,
     mkTelephoneURI,
     TextTelephone (..),
+    mkTextTelephone,
     URITelephone (..),
+    mkURITelephone,
 
     -- **** Email
     Email (..),
@@ -342,7 +344,8 @@ instance IsProperty End where
 -- @
 data Source = Source
   { sourceValue :: URI,
-    sourcePreference :: !(Maybe Preference)
+    sourcePreference :: !(Maybe Preference),
+    sourceAlternativeIdentifier :: !(Maybe AlternativeIdentifier)
   }
   deriving (Show, Eq, Ord, Generic)
 
@@ -354,14 +357,17 @@ instance IsProperty Source where
   propertyName Proxy = "SOURCE"
   propertyP clv = do
     sourcePreference <- propertyParamP clv
+    sourceAlternativeIdentifier <- propertyParamP clv
     wrapPropertyTypeP (\sourceValue -> Source {..}) clv
   propertyB Source {..} =
     insertMParam sourcePreference $
-      propertyTypeB sourceValue
+      insertMParam sourceAlternativeIdentifier $
+        propertyTypeB sourceValue
 
 mkSource :: URI -> Source
 mkSource sourceValue =
   let sourcePreference = Nothing
+      sourceAlternativeIdentifier = Nothing
    in Source {..}
 
 -- [Section 6.2.1](https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.1)
@@ -391,6 +397,7 @@ mkSource sourceValue =
 data FormattedName = FormattedName
   { formattedNameValue :: Text,
     formattedNameLanguage :: !(Maybe Language),
+    formattedNameAlternativeIdentifier :: !(Maybe AlternativeIdentifier),
     formattedNamePreference :: !(Maybe Preference)
   }
   deriving (Show, Eq, Ord, Generic)
@@ -403,16 +410,19 @@ instance IsProperty FormattedName where
   propertyName Proxy = "FN"
   propertyP clv = do
     formattedNameLanguage <- propertyParamP clv
+    formattedNameAlternativeIdentifier <- propertyParamP clv
     formattedNamePreference <- propertyParamP clv
     wrapPropertyTypeP (\formattedNameValue -> FormattedName {..}) clv
   propertyB FormattedName {..} =
     insertMParam formattedNameLanguage $
-      insertMParam formattedNamePreference $
-        propertyTypeB formattedNameValue
+      insertMParam formattedNameAlternativeIdentifier $
+        insertMParam formattedNamePreference $
+          propertyTypeB formattedNameValue
 
 mkFormattedName :: Text -> FormattedName
 mkFormattedName formattedNameValue =
   let formattedNameLanguage = Nothing
+      formattedNameAlternativeIdentifier = Nothing
       formattedNamePreference = Nothing
    in FormattedName {..}
 
@@ -460,7 +470,8 @@ data Name = Name
     nameAdditionalNames :: [Text],
     nameHonorificPrefixes :: [Text],
     nameHonorificSuffixes :: [Text],
-    nameLanguage :: !(Maybe Language)
+    nameLanguage :: !(Maybe Language),
+    nameAlternativeIdentifier :: !(Maybe AlternativeIdentifier)
   }
   deriving (Show, Eq, Generic)
 
@@ -483,6 +494,7 @@ instance IsProperty Name where
   propertyName Proxy = "N"
   propertyP clv = do
     nameLanguage <- propertyParamP clv
+    nameAlternativeIdentifier <- propertyParamP clv
     let namess = splitOnSemicolonsThenCommas (contentLineValueRaw clv)
 
     (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) <- case namess of
@@ -500,14 +512,15 @@ instance IsProperty Name where
 
   propertyB Name {..} =
     insertMParam nameLanguage $
-      mkSimpleContentLineValue $
-        assembleWithCommasThenSemicolons
-          [ nameSurnames,
-            nameGivenNames,
-            nameAdditionalNames,
-            nameHonorificPrefixes,
-            nameHonorificSuffixes
-          ]
+      insertMParam nameAlternativeIdentifier $
+        mkSimpleContentLineValue $
+          assembleWithCommasThenSemicolons
+            [ nameSurnames,
+              nameGivenNames,
+              nameAdditionalNames,
+              nameHonorificPrefixes,
+              nameHonorificSuffixes
+            ]
 
 formatName :: Name -> Text
 formatName Name {..} =
@@ -531,6 +544,7 @@ instance IsProperty NameV3 where
   propertyName Proxy = "N"
   propertyP clv = do
     nameLanguage <- propertyParamP clv
+    nameAlternativeIdentifier <- propertyParamP clv
     let namess = splitOnSemicolonsThenCommas (contentLineValueRaw clv)
 
     let (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) = case namess of
@@ -544,14 +558,15 @@ instance IsProperty NameV3 where
 
   propertyB (NameV3 Name {..}) =
     insertMParam nameLanguage $
-      mkSimpleContentLineValue $
-        assembleWithCommasThenSemicolons $ case (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) of
-          ([], [], [], [], []) -> []
-          (n1, [], [], [], []) -> [n1]
-          (n1, n2, [], [], []) -> [n1, n2]
-          (n1, n2, n3, [], []) -> [n1, n2, n3]
-          (n1, n2, n3, n4, []) -> [n1, n2, n3, n4]
-          (n1, n2, n3, n4, n5) -> [n1, n2, n3, n4, n5]
+      insertMParam nameAlternativeIdentifier $
+        mkSimpleContentLineValue $
+          assembleWithCommasThenSemicolons $ case (nameSurnames, nameGivenNames, nameAdditionalNames, nameHonorificPrefixes, nameHonorificSuffixes) of
+            ([], [], [], [], []) -> []
+            (n1, [], [], [], []) -> [n1]
+            (n1, n2, [], [], []) -> [n1, n2]
+            (n1, n2, n3, [], []) -> [n1, n2, n3]
+            (n1, n2, n3, n4, []) -> [n1, n2, n3, n4]
+            (n1, n2, n3, n4, n5) -> [n1, n2, n3, n4, n5]
 
 mkName ::
   [Text] ->
@@ -562,6 +577,7 @@ mkName ::
   Name
 mkName nameSurnames nameGivenNames nameAdditionalNames nameHonorificPrefixes nameHonorificSuffixes =
   let nameLanguage = Nothing
+      nameAlternativeIdentifier = Nothing
    in Name {..}
 
 emptyName :: Name
@@ -600,6 +616,7 @@ emptyName = mkName [] [] [] [] []
 data Nickname = Nickname
   { nicknameValues :: [Text],
     nicknameLanguage :: !(Maybe Language),
+    nicknameAlternativeIdentifier :: !(Maybe AlternativeIdentifier),
     nicknamePreference :: !(Maybe Preference)
   }
   deriving (Show, Eq, Ord, Generic)
@@ -618,18 +635,21 @@ instance IsProperty Nickname where
   propertyName Proxy = "NICKNAME"
   propertyP clv = do
     nicknameLanguage <- propertyParamP clv
+    nicknameAlternativeIdentifier <- propertyParamP clv
     nicknamePreference <- propertyParamP clv
     viaPropertyTypeListP
       (\nicknameValues -> pure Nickname {..})
       clv
   propertyB Nickname {..} =
     insertMParam nicknameLanguage $
-      insertMParam nicknamePreference $
-        propertyTypeListB nicknameValues
+      insertMParam nicknameAlternativeIdentifier $
+        insertMParam nicknamePreference $
+          propertyTypeListB nicknameValues
 
 mkNickname :: [Text] -> Nickname
 mkNickname nicknameValues =
   let nicknameLanguage = Nothing
+      nicknameAlternativeIdentifier = Nothing
       nicknamePreference = Nothing
    in Nickname {..}
 
@@ -847,19 +867,23 @@ instance IsProperty Telephone where
     case fromMaybe defaultTelephoneType mValueDataType of
       TypeText -> do
         textTelephonePreference <- propertyParamP clv
+        textTelephoneAlternativeIdentifier <- propertyParamP clv
         TelephoneText <$> wrapPropertyTypeP (\textTelephoneValue -> TextTelephone {..}) clv
       TypeURI -> do
         uriTelephonePreference <- propertyParamP clv
+        uriTelephoneAlternativeIdentifier <- propertyParamP clv
         TelephoneURI <$> wrapPropertyTypeP (\uriTelephoneValue -> URITelephone {..}) clv
       typ -> unfixableError $ ValueMismatch "TEL" typ (Just TypeText) [TypeURI]
 
   propertyB = \case
     TelephoneText TextTelephone {..} ->
       insertMParam textTelephonePreference $
-        propertyTypeB textTelephoneValue
+        insertMParam textTelephoneAlternativeIdentifier $
+          propertyTypeB textTelephoneValue
     TelephoneURI URITelephone {..} ->
       insertMParam uriTelephonePreference $
-        typedPropertyTypeB uriTelephoneValue
+        insertMParam uriTelephoneAlternativeIdentifier $
+          typedPropertyTypeB uriTelephoneValue
 
 -- @
 -- By default, it is a single free-form text value
@@ -868,18 +892,15 @@ defaultTelephoneType :: ValueDataType
 defaultTelephoneType = TypeText
 
 mkTelephoneText :: Text -> Telephone
-mkTelephoneText textTelephoneValue =
-  let textTelephonePreference = Nothing
-   in TelephoneText TextTelephone {..}
+mkTelephoneText = TelephoneText . mkTextTelephone
 
 mkTelephoneURI :: URI -> Telephone
-mkTelephoneURI uriTelephoneValue =
-  let uriTelephonePreference = Nothing
-   in TelephoneURI URITelephone {..}
+mkTelephoneURI = TelephoneURI . mkURITelephone
 
 data TextTelephone = TextTelephone
   { textTelephoneValue :: !Text,
-    textTelephonePreference :: !(Maybe Preference)
+    textTelephonePreference :: !(Maybe Preference),
+    textTelephoneAlternativeIdentifier :: !(Maybe AlternativeIdentifier)
   }
   deriving (Show, Eq, Ord, Generic)
 
@@ -887,15 +908,28 @@ instance Validity TextTelephone
 
 instance NFData TextTelephone
 
+mkTextTelephone :: Text -> TextTelephone
+mkTextTelephone textTelephoneValue =
+  let textTelephonePreference = Nothing
+      textTelephoneAlternativeIdentifier = Nothing
+   in TextTelephone {..}
+
 data URITelephone = URITelephone
   { uriTelephoneValue :: !URI,
-    uriTelephonePreference :: !(Maybe Preference)
+    uriTelephonePreference :: !(Maybe Preference),
+    uriTelephoneAlternativeIdentifier :: !(Maybe AlternativeIdentifier)
   }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity URITelephone
 
 instance NFData URITelephone
+
+mkURITelephone :: URI -> URITelephone
+mkURITelephone uriTelephoneValue =
+  let uriTelephonePreference = Nothing
+      uriTelephoneAlternativeIdentifier = Nothing
+   in URITelephone {..}
 
 -- | Email
 --
@@ -933,7 +967,8 @@ instance NFData URITelephone
 -- @
 data Email = Email
   { emailValue :: !Text,
-    emailPreference :: !(Maybe Preference)
+    emailPreference :: !(Maybe Preference),
+    emailAlternativeIdentifier :: !(Maybe AlternativeIdentifier)
   }
   deriving (Show, Eq, Ord, Generic)
 
@@ -945,14 +980,17 @@ instance IsProperty Email where
   propertyName Proxy = "EMAIL"
   propertyP clv = do
     emailPreference <- propertyParamP clv
+    emailAlternativeIdentifier <- propertyParamP clv
     wrapPropertyTypeP (\emailValue -> Email {..}) clv
   propertyB Email {..} =
     insertMParam emailPreference $
-      propertyTypeB emailValue
+      insertMParam emailAlternativeIdentifier $
+        propertyTypeB emailValue
 
 mkEmail :: Text -> Email
 mkEmail emailValue =
   let emailPreference = Nothing
+      emailAlternativeIdentifier = Nothing
    in Email {..}
 
 -- | Product Identifier
@@ -1152,7 +1190,8 @@ mkTextUID textUIDValue = TextUID {..}
 -- @
 data URL = URL
   { urlValue :: !Text,
-    urlPreference :: !(Maybe Preference)
+    urlPreference :: !(Maybe Preference),
+    urlAlternativeIdentifier :: !(Maybe AlternativeIdentifier)
   }
   deriving (Show, Eq, Ord, Generic)
 
@@ -1164,14 +1203,17 @@ instance IsProperty URL where
   propertyName Proxy = "URL"
   propertyP clv = do
     urlPreference <- propertyParamP clv
+    urlAlternativeIdentifier <- propertyParamP clv
     wrapPropertyTypeP (\urlValue -> URL {..}) clv
   propertyB URL {..} =
     insertMParam urlPreference $
-      propertyTypeB urlValue
+      insertMParam urlAlternativeIdentifier $
+        propertyTypeB urlValue
 
 mkURL :: Text -> URL
 mkURL urlValue =
   let urlPreference = Nothing
+      urlAlternativeIdentifier = Nothing
    in URL {..}
 
 -- | Version

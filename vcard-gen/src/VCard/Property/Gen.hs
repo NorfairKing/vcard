@@ -46,6 +46,7 @@ instance GenValid Name where
     nameHonorificPrefixes <- genNonemptyTexts
     nameHonorificSuffixes <- genNonemptyTexts
     nameLanguage <- genValid
+    nameAlternativeIdentifier <- genValid
     pure Name {..}
 
 instance GenValid NameV3 where
@@ -57,6 +58,7 @@ instance GenValid Nickname where
     nicknameValues <- genNonemptyTexts
     nicknameLanguage <- genValid
     nicknamePreference <- genValid
+    nicknameAlternativeIdentifier <- genValid
     pure Nickname {..}
 
 instance GenValid Sex where

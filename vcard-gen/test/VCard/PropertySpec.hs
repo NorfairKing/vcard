@@ -517,18 +517,16 @@ spec = do
     -- @
     propertyParseExampleSpec
       "TEL;VALUE=uri;PREF=1;TYPE=\"voice,home\":tel:+1-555-555-5555;ext=5555"
-      ( TelephoneURI
-          URITelephone
-            { uriTelephoneValue = "tel:+1-555-555-5555;ext=5555",
-              uriTelephonePreference = Just (Preference 1)
+      ( TelephoneURI $
+          (mkURITelephone "tel:+1-555-555-5555;ext=5555")
+            { uriTelephonePreference = Just (Preference 1)
             }
       )
     propertyRenderExampleSpec
       "TEL;VALUE=uri;PREF=1:tel:+1-555-555-5555;ext=5555"
-      ( TelephoneURI
-          URITelephone
-            { uriTelephoneValue = "tel:+1-555-555-5555;ext=5555",
-              uriTelephonePreference = Just (Preference 1)
+      ( TelephoneURI $
+          (mkURITelephone "tel:+1-555-555-5555;ext=5555")
+            { uriTelephonePreference = Just (Preference 1)
             }
       )
     propertyParseExampleSpec "TEL;VALUE=uri;TYPE=home:tel:+33-01-23-45-67" (mkTelephoneURI "tel:+33-01-23-45-67")
