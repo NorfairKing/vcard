@@ -6,11 +6,8 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-23.11";
-    nixpkgs-23_05.url = "github:NixOS/nixpkgs?ref=nixos-23.05";
-    nixpkgs-22_11.url = "github:NixOS/nixpkgs?ref=nixos-22.11";
-    nixpkgs-22_05.url = "github:NixOS/nixpkgs?ref=nixos-22.05";
-    nixpkgs-21_11.url = "github:NixOS/nixpkgs?ref=nixos-21.11";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
+    nixpkgs-23_11.url = "github:NixOS/nixpkgs?ref=nixos-23.11";
     horizon-advance.url = "git+https://gitlab.horizon-haskell.net/package-sets/horizon-advance";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     validity.url = "github:NorfairKing/validity";
@@ -23,6 +20,8 @@
     fast-myers-diff.flake = false;
     sydtest.url = "github:NorfairKing/sydtest";
     sydtest.flake = false;
+    opt-env-conf.url = "github:NorfairKing/opt-env-conf";
+    opt-env-conf.flake = false;
     conformance.url = "github:NorfairKing/conformance";
     conformance.flake = false;
     dekking.url = "github:NorfairKing/dekking";
@@ -32,10 +31,7 @@
   outputs =
     { self
     , nixpkgs
-    , nixpkgs-23_05
-    , nixpkgs-22_11
-    , nixpkgs-22_05
-    , nixpkgs-21_11
+    , nixpkgs-23_11
     , horizon-advance
     , pre-commit-hooks
     , validity
@@ -43,6 +39,7 @@
     , autodocodec
     , fast-myers-diff
     , sydtest
+    , opt-env-conf
     , conformance
     , dekking
     }:
@@ -56,6 +53,7 @@
         (pkgs.callPackage (safe-coloured-text + "/nix/overrides.nix") { })
         (pkgs.callPackage (fast-myers-diff + "/nix/overrides.nix") { })
         (pkgs.callPackage (sydtest + "/nix/overrides.nix") { })
+        (pkgs.callPackage (opt-env-conf + "/nix/overrides.nix") { })
         (pkgs.callPackage (conformance + "/nix/overrides.nix") { })
         (pkgs.callPackage (dekking + "/nix/overrides.nix") { })
         self.overrides.${system}
@@ -73,10 +71,7 @@
           backwardCompatibilityCheckFor = nixpkgs: (haskellPackagesFor nixpkgs).vcardRelease;
           allNixpkgs = {
             inherit
-              nixpkgs-23_05
-              nixpkgs-22_11
-              nixpkgs-22_05
-              nixpkgs-21_11;
+              nixpkgs-23_11;
           };
           backwardCompatibilityChecks = pkgs.lib.mapAttrs (_: nixpkgs: backwardCompatibilityCheckFor nixpkgs) allNixpkgs;
         in
