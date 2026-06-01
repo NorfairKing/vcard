@@ -1,5 +1,7 @@
 # VCard
 
+[![NixCI](https://staging.nix-ci.com/badge/gh:NorfairKing:vcard)](https://staging.nix-ci.com/gh:NorfairKing:vcard)
+
 An implementation of:
 
 * [RFC6350: vCard Format Specification](https://datatracker.ietf.org/doc/html/rfc6350)
